@@ -37,18 +37,49 @@ class Main {
 
             // Get the first line of the request
             String firstLine = request.toString().split("\n")[0];
-            System.out.println(firstLine);
+            // System.out.println(firstLine);
             // Get the second thing "resource" from the first line (seperated by spaces)
             String resource = firstLine.split(" ")[1];
             // Compare the "resource" to our list of things
-            System.out.println(resource);
+            // System.out.println(resource);
 
             OutputStream clientOutput = client.getOutputStream();
+            if (resource.equals("/")) {
             clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
             clientOutput.write(("\r\n").getBytes());
             clientOutput.write(("Hello World").getBytes());
-            clientOutput.flush();
+            clientOutput.write(("\r\n").getBytes());
 
+            //Status code
+            clientOutput.write(("HTTP/1.1 200 OK").getBytes());
+            clientOutput.write(("\r\n").getBytes());
+
+            //Date
+            clientOutput.write(("Date: ").getBytes());
+            clientOutput.write(("\r\n").getBytes());
+
+            //Server
+            clientOutput.write(("Server:Chau & Satumba").getBytes());
+            clientOutput.write(("\r\n").getBytes());
+
+            //Content-Type
+            clientOutput.write(("Content-Type: text/html").getBytes());
+            clientOutput.write(("\r\n").getBytes());
+
+            //Content-Length
+            clientOutput.write(("Content-Length: ").getBytes());
+            clientOutput.write(("\r\n").getBytes());
+
+            clientOutput.flush();
+          } else {
+            clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
+            clientOutput.write(("\r\n").getBytes());
+            clientOutput.write(("What are you looking for?").getBytes());
+            clientOutput.write(("\r\n").getBytes());
+            clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
+            clientOutput.write(("\r\n").getBytes());
+            clientOutput.flush();
+          }
 
 
 
