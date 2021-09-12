@@ -33,61 +33,46 @@ class Main {
           System.out.println("--REQUEST--");
           System.out.println(request);
 
-          //Decide how we'd like to respond
+          // Decide how we'd like to respond
 
+          // Get the first line of the request
+          String firstLine = request.toString().split("\n")[0];
+          // Get the second thing "resource" from the first line (seperated by spaces)
+          String resource = firstLine.split(" ")[1];
+          // Compare the "resource" to our list of things
+          System.out.println(resource);
+          if (resource.equals("/image")) {
+            // Send back an image
 
+            // Load the image from the filesystem
+            FileInputStream image = new FileInputStream("public_html/images/sushi.jpg");
+            System.out.println(image.toString());
+            // Turn the image into bytes?
+            // Set the ContentType?
 
+            OutputStream clientOutput = client.getOutputStream();
+            clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
+            clientOutput.write(("\r\n").getBytes());
+            clientOutput.write(image.readAllBytes());
+            clientOutput.flush();
 
-            // Get the first line of the request
-            String firstLine = request.toString().split("\n")[0];
-            // Get the second thing "resource" from the first line (seperated by spaces)
-            String resource = firstLine.split(" ")[1];
-            // Compare the "resource" to our list of things
-            System.out.println(resource);
-            if (resource.equals("/image")) {
-              //Send back an image
+          } else if (resource.equals("/hello")) {
 
-              // Load the image from the filesystem
-              FileInputStream image = new FileInputStream("public_html/images/sushi.jpg");
-              System.out.println(image.toString());
-              // Turn the image into bytes?
-              // Set the ContentType?
+            OutputStream clientOutput = client.getOutputStream();
+            clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
+            clientOutput.write(("\r\n").getBytes());
+            clientOutput.write(("Hello World").getBytes());
+            clientOutput.flush();
 
-              OutputStream clientOutput = client.getOutputStream();
-              clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
-              clientOutput.write(("\r\n").getBytes());
-              clientOutput.write(image.readAllBytes());
-              clientOutput.flush();
+          } else {
 
+            OutputStream clientOutput = client.getOutputStream();
+            clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
+            clientOutput.write(("\r\n").getBytes());
+            clientOutput.write(("What are you looking for?").getBytes());
+            clientOutput.flush();
 
-            } else if (resource.equals("/hello")) {
-
-              OutputStream clientOutput = client.getOutputStream();
-              clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
-              clientOutput.write(("\r\n").getBytes());
-              clientOutput.write(("Hello World").getBytes());
-              clientOutput.flush();
-
-            } else {
-
-              OutputStream clientOutput = client.getOutputStream();
-              clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
-              clientOutput.write(("\r\n").getBytes());
-              clientOutput.write(("What are you looking for?").getBytes());
-              clientOutput.flush();
-
-            }
-
-
-
-
-
-
-
-
-
-
-
+          }
 
           client.close();
         }

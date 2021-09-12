@@ -2,3 +2,4 @@ src/*.class
 *.class
 *.jar
 test.java
+.vscode/

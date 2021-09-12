@@ -1,8 +1,5 @@
-
-package crunchify.com.tutorials;
-
-import java.net.URL;
-import java.net.URLConnection;
+import java.net.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -11,14 +8,17 @@ import java.util.Map;
  *
  */
 
-public class CrunchifyHTTPResponseHeader {
+class WebServer3 {
 
 	public static void main(String[] args) {
 		try {
 
 			URL obj = new URL("https://localhost:8080");
-			URLConnection conn = obj.openConnection();
-			Map<String, List<String>> map = conn.getHeaderFields();
+			HttpURLConnection connection = (HttpURLConnection) obj.openConnection();
+			List<String> method = new ArrayList<String>();
+			connection.setRequestMethod(method.get(0));
+			
+			Map<String, List<String>> map = connection.getHeaderFields();
 
 			System.out.println("Printing All Response Header for URL: " + obj.toString() + "\n");
 			for (Map.Entry<String, List<String>> entry : map.entrySet()) {

@@ -1,8 +1,7 @@
 import java.io.*;
-import java.net.Socket;
-import java.net.ServerSocket;
+import java.net.*;
 
-class Main {
+class WebServer2 {
   public static void main(String[] args) throws Exception {
     // Start recieving messages - ready to recieve messages!
     try (ServerSocket serverSocket = new ServerSocket(8080)) {
@@ -33,40 +32,40 @@ class Main {
           System.out.println("--REQUEST--");
           System.out.println(request);
 
-          //Decide how we'd like to respond
+          // Decide how we'd like to respond
 
-            // Get the first line of the request
-            String firstLine = request.toString().split("\n")[0];
-            // System.out.println(firstLine);
-            // Get the second thing "resource" from the first line (seperated by spaces)
-            String resource = firstLine.split(" ")[1];
-            // Compare the "resource" to our list of things
-            // System.out.println(resource);
+          // Get the first line of the request
+          String firstLine = request.toString().split("\n")[0];
+          // System.out.println(firstLine);
+          // Get the second thing "resource" from the first line (seperated by spaces)
+          String resource = firstLine.split(" ")[1];
+          // Compare the "resource" to our list of things
+          // System.out.println(resource);
 
-            OutputStream clientOutput = client.getOutputStream();
-            if (resource.equals("/")) {
+          OutputStream clientOutput = client.getOutputStream();
+          if (resource.equals("/")) {
             clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
             clientOutput.write(("\r\n").getBytes());
             clientOutput.write(("Hello World").getBytes());
             clientOutput.write(("\r\n").getBytes());
 
-            //Status code
+            // Status code
             clientOutput.write(("HTTP/1.1 200 OK").getBytes());
             clientOutput.write(("\r\n").getBytes());
 
-            //Date
+            // Date
             clientOutput.write(("Date: ").getBytes());
             clientOutput.write(("\r\n").getBytes());
 
-            //Server
+            // Server
             clientOutput.write(("Server:Chau & Satumba").getBytes());
             clientOutput.write(("\r\n").getBytes());
 
-            //Content-Type
+            // Content-Type
             clientOutput.write(("Content-Type: text/html").getBytes());
             clientOutput.write(("\r\n").getBytes());
 
-            //Content-Length
+            // Content-Length
             clientOutput.write(("Content-Length: ").getBytes());
             clientOutput.write(("\r\n").getBytes());
 
@@ -80,21 +79,6 @@ class Main {
             clientOutput.write(("\r\n").getBytes());
             clientOutput.flush();
           }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
           client.close();
         }
