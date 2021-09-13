@@ -1,86 +1,77 @@
 import java.io.*;
 import java.net.*;
+import java.time.*;
 
 public class WebServer {
+  private static String server = "Chau & Satumba";
 
-  static String get_req = "GET /index.html HTTP/1.1";
-//   User-Agent: Mozilla/4.0 (compatible; MSIE5.01; Windows NT)
-//   Host: www.tutorialspoint.com
-//   Accept-Language: en-us
-//   Accept-Encoding: gzip, deflate
-//   Connection: Keep-Alive";
-
-  public static void main(String[] args) {
-    checkRequest(get_req);
+  public static void main(String[] args) throws Exception {
+    // Start recieving messages - ready to recieve messages!
+    try (ServerSocket serverSocket = new ServerSocket(8080)) {
+      System.out.println("Server started. \nListening for messages.");
+      listenForReq(serverSocket);
+    }
   }
 
-  /*
-        GET /hello.htm HTTP/1.1
-        User-Agent: Mozilla/4.0 (compatible; MSIE5.01; Windows NT)
-        Host: www.tutorialspoint.com
-        Accept-Language: en-us
-        Accept-Encoding: gzip, deflate
-        Connection: Keep-Alive
-    */
+  private static void listenForReq(ServerSocket serverSocket) throws IOException {
+    while (true) {
+      // Handle a new incoming message
+      try (Socket client = serverSocket.accept()) {
+        // client <-- messages queued up in it!!
+        System.out.println("Debug: got new message " + client.toString());
+        // Read the request - listen to the messages
+        // Bytes -> Chars
+        InputStreamReader isr = new InputStreamReader(client.getInputStream());
+        // Reads text from char-input stream,
+        BufferedReader br = new BufferedReader(isr);
+        // Read the first request from the client
+        StringBuilder request = new StringBuilder();
+        String line; // Temp variable called line that holds one line at a time of our message
 
-  /* • HTTP_METHOD IDENTIFIER HTTP_VERSION
+        String http_version = "";
+        line = br.readLine();
+        while (!line.isBlank()) {
+          request.append(line + "\r\n");
+          if (line.contains("HTTP/1.1")) {
+            http_version = line;
+          }
+          line = br.readLine();
+        }
 
-        HTTP_HEADERS
-
-        BODY
-        
-        • HTTP_METHOD specifies an HTTP method (verb): GET, HEAD, 
-        POST, PUT, DELETE, TRACE, OPTIONS, CONNECT, PATCH
-        • IDENTIFIER is the URI of the resource or the body
-        • HTTP_VERSION is the HTTP version being used by the client
-        • BODY is an optional payload (the Content-Length header must be present if BODY is present)
-    */
-
-  public static void getRequest(String URI) {}
-  
-  public static void checkRequest(String get_req) {
-    // Split by new lines
-    String reqArr[] = get_req.split("\\r?\\n", 1);
-
-    // Split first line by whitespace
-    String headerArr[] = reqArr[0].split(" ");
-
-    for (int i = 0; i < reqArr.length; i++) {
-      System.out.println(reqArr[i] + "\n");
+        // printRequest(request);
+        // Decide how we'd like to respond
+        checkRequest(client, request);
+        client.close();
+      }
     }
+  }
 
-    // HTTP method string
-    String http_method = headerArr[0];
-    // identifier string
-    String uri = headerArr[1];
-    // HTTP version string
-    String http_version = headerArr[2];
-
-    switch (http_method) {
+  public static void checkRequest(Socket client, StringBuilder req) throws IOException {
+    String reqArr[] = req.toString().split("\\r?\\n", 2);
+    // Get the first line of the request
+    String firstLine = reqArr[0];
+    // System.out.println("first line " + firstLine + "\nsecond line " + reqArr[1]);
+    // Get "resource" and "method" from first line
+    String method = firstLine.split(" ")[0];
+    String resource = firstLine.split(" ")[1];
+    switch (method) {
       case "GET":
-        System.out.println(
-          "HTTP_Method: " +
-          http_method +
-          "\nURI: " +
-          uri +
-          "\nHTTP_Version: " +
-          http_version +
-          "\n"
-        );
-        getRequest(uri);
+        getRequest(client, resource);
         break;
       case "POST":
+        postRequest(client, resource);
         break;
       case "HEAD":
+        headRequest(client, resource);
         break;
       case "PUT":
+        putRequest(client, resource);
         break;
       case "DELETE":
+        deleteRequest(client, resource);
         break;
     }
   }
-<<<<<<< Updated upstream
-=======
 
   private static void getRequest(Socket client, String resource) throws IOException {
     // Compare the "resource" to our list of things
@@ -156,5 +147,4 @@ public class WebServer {
   // }
   // return sb.toString();
   // }
->>>>>>> Stashed changes
 }
