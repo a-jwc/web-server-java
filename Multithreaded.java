@@ -84,17 +84,9 @@ public class Multithreaded {
     // Compare the "resource" to our list of things
     System.out.println("get request resource from: " + resource);
     PrintWriter pw = new PrintWriter(client.getOutputStream());
-    LocalDateTime dateTime = LocalDateTime.now();
      
     if (resource.equals("/")) {
-      // Status code
-      pw.print(("HTTP/1.1 200 OK\r\n"));
-      pw.print(("Date: " + dateTime.toString() + "\r\n"));
-      pw.print(("Server: " + server + "\r\n"));
-      // Content-Type
-      pw.print(("Content-Type: text/html; charset=utf-8\r\n"));
-      // Content-Length
-      pw.print(("Content-Length: \r\n"));
+      pw.write(response_200(pw).toCharArray());
       pw.flush();
     } else if (resource.equals("/mj")) {
       System.out.println(resource.equals("/mj"));
@@ -104,16 +96,16 @@ public class Multithreaded {
       System.out.println(image.toString());
       // Turn the image into bytes?
       // Set the ContentType?
-      status200(pw);
+      pw.write(response_200(pw).toCharArray());
       pw.print(image);
       pw.flush();
       image.close();
     } else if (resource.equals("/hello")) {
-      status200(pw);
-      pw.print(("Hello World!"));
-      pw.flush();
+      pw.write(response_200(pw).toCharArray());
+      pw.write(("Hello World!").toCharArray());
+      pw.close();
     } else {
-      status200(pw);
+      pw.write(response_200(pw).toCharArray());
       pw.print(("What are you looking for?"));
       pw.flush();
     }
@@ -129,10 +121,6 @@ public class Multithreaded {
   }
 
   private static void deleteRequest(Socket client, String resource) {
-  }
-
-  private static void status200(PrintWriter pw) throws IOException {
-    pw.print(("HTTP/1.1 200 OK\r\n"));
   }
 
   private static void printRequest(StringBuilder request) {
@@ -154,6 +142,12 @@ public class Multithreaded {
   // }
   // return sb.toString();
   // }
+
+  private static String response_200(PrintWriter pw) {
+    LocalDateTime dateTime = LocalDateTime.now();
+    String response = "HTTP/1.1 200 OK\r\n" + "Date: " + dateTime.toString() + "\r\n" + "Server: " + server + "\r\n" + "Content-Type: text/html; charset=utf-8\r\n" + "Content-Length: \r\n";
+    return response;
+  }
 }
 
 final class HttpRequest implements Runnable {

@@ -54,6 +54,7 @@ class Main {
             clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
             clientOutput.write(("\r\n").getBytes());
             clientOutput.write(image.readAllBytes());
+            image.close();
             clientOutput.flush();
 
           } else if (resource.equals("/hello")) {
