@@ -56,39 +56,21 @@ class WebServer2 {
         PrintWriter clientOutput = new PrintWriter(client.getOutputStream());
         // HttpResponse hr = client.send()
         if (resource.equals("/")) {
-          clientOutput.print(("HTTP/1.1 200 OK\r\n"));
-          clientOutput.print(("\r\n"));
-          clientOutput.print(("Hello World"));
-          clientOutput.print(("\r\n"));
-
           // Status code
-          clientOutput.print(("HTTP/1.1 200 OK"));
-          clientOutput.print(("\r\n"));
-
+          clientOutput.print(("HTTP/1.1 200 OK\r\n"));
           // Date
-          clientOutput.print(("Date: "));
-          clientOutput.print(("\r\n"));
-
+          clientOutput.print(("Date: \r\n"));
           // Server
-          clientOutput.print(("Server:Chau & Satumba"));
-          clientOutput.print(("\r\n"));
-
+          clientOutput.print(("Server: Chau & Satumba\r\n"));
           // Content-Type
-          clientOutput.print(("Content-Type: text/html"));
-          clientOutput.print(("\r\n"));
-
+          clientOutput.print(("Content-Type: text/html\r\n"));
           // Content-Length
-          clientOutput.print(("Content-Length: "));
-          clientOutput.print(("\r\n"));
-
+          clientOutput.print(("Content-Length: \r\n"));
           clientOutput.flush();
         } else {
           clientOutput.print(("HTTP/1.1 200 OK\r\n"));
-          clientOutput.print(("\r\n"));
-          clientOutput.print(("What are you looking for?"));
-          clientOutput.print(("\r\n"));
+          clientOutput.print(("What are you looking for?\r\n"));
           clientOutput.print(("HTTP/1.1 200 OK\r\n"));
-          clientOutput.print(("\r\n"));
           clientOutput.flush();
         }
       // });

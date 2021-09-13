@@ -1,55 +1,50 @@
 import java.io.*;
 import java.net.*;
+import java.time.*;
 
 public class WebServer {
+  private static String server = "Chau & Satumba";
+
   public static void main(String[] args) throws Exception {
     // Start recieving messages - ready to recieve messages!
     try (ServerSocket serverSocket = new ServerSocket(8080)) {
       System.out.println("Server started. \nListening for messages.");
-      while (true) {
-        // Handle a new incoming message
-        try (Socket client = serverSocket.accept()) {
-          // client <-- messages queued up in it!!
-          System.out.println("Debug: got new message " + client.toString());
-          // Read the request - listen to the messages
-          // Bytes -> Chars
-          InputStreamReader isr = new InputStreamReader(client.getInputStream());
-          // Reads text from char-input stream,
-          BufferedReader br = new BufferedReader(isr);
-          // Read the first request from the client
-          StringBuilder request = new StringBuilder();
-          String line; // Temp variable called line that holds one line at a time of our message
-
-          line = br.readLine();
-          while (!line.isBlank()) {
-            request.append(line + "\r\n");
-            line = br.readLine();
-          }
-
-          // System.out.println("--REQUEST--");
-          // System.out.println("Request: " + request);
-
-          // Decide how we'd like to respond
-          checkRequest(client, request);
-          client.close();
-        }
-      }
+      listenForReq(serverSocket);
     }
   }
 
-  /*
-   * • HTTP_METHOD IDENTIFIER HTTP_VERSION
-   * 
-   * HTTP_HEADERS
-   * 
-   * BODY
-   * 
-   * • HTTP_METHOD specifies an HTTP method (verb): GET, HEAD, POST, PUT, DELETE,
-   * TRACE, OPTIONS, CONNECT, PATCH • IDENTIFIER is the URI of the resource or the
-   * body • HTTP_VERSION is the HTTP version being used by the client • BODY is an
-   * optional payload (the Content-Length header must be present if BODY is
-   * present)
-   */
+  private static void listenForReq(ServerSocket serverSocket) throws IOException {
+    while (true) {
+      // Handle a new incoming message
+      try (Socket client = serverSocket.accept()) {
+        // client <-- messages queued up in it!!
+        System.out.println("Debug: got new message " + client.toString());
+        // Read the request - listen to the messages
+        // Bytes -> Chars
+        InputStreamReader isr = new InputStreamReader(client.getInputStream());
+        // Reads text from char-input stream,
+        BufferedReader br = new BufferedReader(isr);
+        // Read the first request from the client
+        StringBuilder request = new StringBuilder();
+        String line; // Temp variable called line that holds one line at a time of our message
+
+        String http_version = "";
+        line = br.readLine();
+        while (!line.isBlank()) {
+          request.append(line + "\r\n");
+          if (line.contains("HTTP/1.1")) {
+            http_version = line;
+          }
+          line = br.readLine();
+        }
+
+        // printRequest(request);
+        // Decide how we'd like to respond
+        checkRequest(client, request);
+        client.close();
+      }
+    }
+  }
 
   public static void checkRequest(Socket client, StringBuilder req) throws IOException {
     String reqArr[] = req.toString().split("\\r?\\n", 2);
@@ -64,13 +59,16 @@ public class WebServer {
         getRequest(client, resource);
         break;
       case "POST":
-        // postRequest(body);
+        postRequest(client, resource);
         break;
       case "HEAD":
+        headRequest(client, resource);
         break;
       case "PUT":
+        putRequest(client, resource);
         break;
       case "DELETE":
+        deleteRequest(client, resource);
         break;
     }
   }
@@ -78,40 +76,61 @@ public class WebServer {
   private static void getRequest(Socket client, String resource) throws IOException {
     // Compare the "resource" to our list of things
     System.out.println("get request resource from: " + resource);
-    OutputStream clientOutput = client.getOutputStream();
-
-    if (resource.equals("/mj")) {
+    PrintWriter pw = new PrintWriter(client.getOutputStream());
+    LocalDateTime dateTime = LocalDateTime.now();
+     
+    if (resource.equals("/")) {
+      // Status code
+      pw.print(("HTTP/1.1 200 OK\r\n"));
+      pw.print(("Date: " + dateTime.toString() + "\r\n"));
+      pw.print(("Server: " + server + "\r\n"));
+      // Content-Type
+      pw.print(("Content-Type: text/html; charset=utf-8\r\n"));
+      // Content-Length
+      pw.print(("Content-Length: \r\n"));
+      pw.flush();
+    } else if (resource.equals("/mj")) {
       System.out.println(resource.equals("/mj"));
       // Send back an image
-
       // Load the image from the filesystem
       FileInputStream image = new FileInputStream("fav.jpg");
       System.out.println(image.toString());
       // Turn the image into bytes?
       // Set the ContentType?
-      status200(clientOutput);
-      clientOutput.write(image.readAllBytes());
-      clientOutput.flush();
+      status200(pw);
+      pw.print(image);
+      pw.flush();
       image.close();
     } else if (resource.equals("/hello")) {
-      status200(clientOutput);
-      clientOutput.write(("Hello World").getBytes());
-      clientOutput.flush();
+      status200(pw);
+      pw.print(("Hello World!"));
+      pw.flush();
     } else {
-      clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
-      clientOutput.write(("\r\n").getBytes());
-      clientOutput.write(("What are you looking for?").getBytes());
-      clientOutput.flush();
+      status200(pw);
+      pw.print(("What are you looking for?"));
+      pw.flush();
     }
   }
 
-  private static void postRequest(String body) {
-
+  private static void postRequest(Socket client, String body) {
   }
 
-  private static void status200(OutputStream co) throws IOException {
-    co.write(("HTTP/1.1 200 OK\r\n").getBytes());
-    co.write(("\r\n").getBytes());
+  private static void headRequest(Socket client, String resource) {
+  }
+
+  private static void putRequest(Socket client, String resource) {
+  }
+
+  private static void deleteRequest(Socket client, String resource) {
+  }
+
+  private static void status200(PrintWriter pw) throws IOException {
+    pw.print(("HTTP/1.1 200 OK\r\n"));
+  }
+
+  private static void printRequest(StringBuilder request) {
+    System.out.println("--REQUEST--");
+    System.out.println("Request: " + request);
   }
 
   private static void printRequestLine(String http_method, String uri, String http_version) {
