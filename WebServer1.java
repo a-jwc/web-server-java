@@ -58,21 +58,17 @@ class Main {
             clientOutput.flush();
 
           } else if (resource.equals("/hello")) {
-
             OutputStream clientOutput = client.getOutputStream();
             clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
             clientOutput.write(("\r\n").getBytes());
             clientOutput.write(("Hello World").getBytes());
             clientOutput.flush();
-
           } else {
-
             OutputStream clientOutput = client.getOutputStream();
             clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
             clientOutput.write(("\r\n").getBytes());
             clientOutput.write(("What are you looking for?").getBytes());
             clientOutput.flush();
-
           }
 
           client.close();
