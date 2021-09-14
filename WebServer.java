@@ -212,6 +212,18 @@ public class WebServer {
     System.out.println("HTTP_Method: " + http_method + "\nURI: " + uri + "\nHTTP_Version: " + http_version + "\n");
   }
 
+  public static void send401Response(Socket socket) throws IOException {
+    BufferedWriter writer = new BufferedWriter(
+    new OutputStreamWriter(socket.getOutputStream())
+    );
+
+    writer.write("HTTP/1.1 401 Unauthorized \r\n");
+    writer.write("Server: itsmejrob\r\n");
+    writer.write("WW-Authenticate: Basic\r\n");
+    writer.flush();
+
+  }
+
   // private static String getBody(BufferedReader req) {
   // StringBuilder sb = new StringBuilder();
   // BufferedReader br = new req.getReader();
