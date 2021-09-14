@@ -18,7 +18,7 @@ class WebServer2 {
       try (Socket client = serverSocket.accept()) {
         // client <-- messages queued up in it!!
         System.out.println("Debug: got new message " + client.toString());
-        // Thread t1 = new Thread(new Runnable () { 
+        // Thread t1 = new Thread(new Runnable () {
 
         // Read the request - listen to the messages
         InputStreamReader isr = new InputStreamReader(client.getInputStream());
@@ -30,7 +30,7 @@ class WebServer2 {
         String http_version = "";
         line = br.readLine();
         while (!line.isBlank()) {
-          request.append(line + "\r\n");    
+          request.append(line + "\r\n");
           if(line.contains("HTTP/1.1")) {
             http_version = line;
           }
