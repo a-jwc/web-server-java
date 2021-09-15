@@ -5,16 +5,19 @@ import java.net.*;
 import java.util.*;
 
 public class Configuration {
-    final String fileName;
+    final String httpdConfFile;
+    final String mimeTypesFile;
     static HashMap<String, String> configMap;
-
-    public Configuration(String fileName) {
-        this.fileName = fileName;
-        configMap = new HashMap<>();
+    static HashMap<String, String> mimeTypesMap;
+ 
+    public Configuration(String httpdConfFile, String mimeTypesFile) {
+        this.httpdConfFile = httpdConfFile;
+        this.mimeTypesFile = mimeTypesFile;
         try {
-            FileInputStream fis = new FileInputStream(fileName);
-            DataInputStream fr = new DataInputStream(fis);
-            BufferedReader br = new BufferedReader(new InputStreamReader(fr));
+            configMap = new HashMap<>();
+            FileInputStream fis = new FileInputStream(httpdConfFile);
+            DataInputStream dis = new DataInputStream(fis);
+            BufferedReader br = new BufferedReader(new InputStreamReader(dis));
             StringBuilder sb = new StringBuilder();
             String line;
             String directive[];
@@ -26,6 +29,35 @@ public class Configuration {
                     sb.append(line + "\r\n");
                 } 
             }
+            br.close();
+            dis.close();
+            fis.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            System.out.println("Successfully read in " + httpdConfFile + " and " + mimeTypesFile + "\n");
+        }
+        try {
+            mimeTypesMap = new HashMap<>();
+            FileInputStream fis = new FileInputStream(mimeTypesFile);
+            DataInputStream dis = new DataInputStream(fis);
+            BufferedReader br = new BufferedReader(new InputStreamReader(dis));
+            StringBuilder sb = new StringBuilder();
+            String line;
+            String mimeType[];
+            while((line = br.readLine()) != null) {
+                if(!line.startsWith("#") && !line.isBlank()) {
+                    mimeType = line.split("\\s+", 2);
+                    if(mimeType.length < 1) {
+                        System.out.println(mimeTypesMap.size() + " : " + mimeType[0] + " " + mimeType[1]);
+                        mimeTypesMap.put(mimeType[0], mimeType[1]);
+                        System.out.println(mimeTypesMap.get(mimeType[0]));
+                        sb.append(line + "\r\n");
+                    }
+                }
+            }
+            br.close();
+            dis.close();
             fis.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -37,6 +69,10 @@ public class Configuration {
 
     public HashMap<String, String> getConfigMap() {
         return configMap;
+    }
+
+    public HashMap<String, String> getMimeTypesMap() {
+        return mimeTypesMap;
     }
 
     private void checkDirectives() {

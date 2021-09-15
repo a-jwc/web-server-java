@@ -3,7 +3,6 @@ import java.net.*;
 import java.time.*;
 import java.util.*;
 
-
 import server.Configuration;
 
 public class WebServer {
@@ -11,14 +10,16 @@ public class WebServer {
   private static final String server = "Chau & Satumba";
   private static int port = 8080;
   private static HashMap<String,String> configMap;
+  private static HashMap<String,String> mimeTypesMap;
   private static String documentRoot;
   private static String logFile;
   private static String scriptAlias;
   private static String alias;
 
   public WebServer() {
-    Configuration config = new Configuration("conf/httpd.conf");
+    Configuration config = new Configuration("conf/httpd.conf", "conf/mime.types");
     configMap = config.getConfigMap();
+    mimeTypesMap = config.getMimeTypesMap();
     port = Integer.parseInt(configMap.get("Listen"));
   }
 
