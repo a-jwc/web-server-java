@@ -79,18 +79,48 @@ public class WebServer {
   private static void getRequest(Socket client, String resource) throws IOException {
     // Compare the "resource" to our list of things
     System.out.println("GET request resource from: " + resource);
-    // PrintWriter pw = new PrintWriter(client.getOutputStream());
-    BufferedWriter pw = new BufferedWriter(new OutputStreamWriter(client.getOutputStream()));
+    PrintWriter pw = new PrintWriter(client.getOutputStream());
+    BufferedOutputStream bw = new BufferedOutputStream(client.getOutputStream());
+    LocalDateTime dateTime = LocalDateTime.now();
+
     if (resource.equals("/")) {
-      pw.write(response_200());
+      // Status code
+      pw.print(("HTTP/1.1 200 OK\r\n"));
+      pw.print("\r\n");
+      // Date
+      pw.print(("Date: " + dateTime.toString() + "\r\n"));
+      pw.print("\r\n");
+      // Server
+      pw.print(("Server: " + server + "\r\n"));
+      pw.print("\r\n");
+      // Content-Type
+      pw.print(("Content-Type: text/html; charset=utf-8\r\n"));
+      pw.print("\r\n");
+      // Content-Length
+      pw.print(("Content-Length: 2 \r\n"));
+      pw.print("\r\n");
       pw.flush();
-    } else if (resource.equals("/hello")) {
-      pw.write(response_200());
-      pw.write(("Hello World!"));
-      pw.flush();
+    } else if (resource.equals("/image")) {
+      //Send back an image
+
+      // Load the image from the filesystem
+      FileInputStream image = new FileInputStream("public_html/images/sushi.jpg");
+      System.out.println(image.toString());
+      // Turn the image into bytes?
+      // Set the ContentType?
+
+      OutputStream clientOutput = client.getOutputStream();
+      clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
+      clientOutput.write(("\r\n").getBytes());
+      clientOutput.write(image.readAllBytes());
+      clientOutput.flush();
     } else {
-      // response_200();
-      pw.write(("What are you looking for?"));
+      // Status code
+      pw.print(("HTTP/1.1 200 OK\r\n"));
+      pw.print("\r\n");
+      //print
+      pw.print(("What are you looking for?"));
+      pw.print("\r\n");
       pw.flush();
     }
   }
@@ -122,6 +152,7 @@ public class WebServer {
   private static void headRequest(Socket client, String resource) throws IOException {
       System.out.println("HEAD request resource from: " + resource);
       PrintWriter pw = new PrintWriter(client.getOutputStream());
+      BufferedOutputStream bw = new BufferedOutputStream(client.getOutputStream());
       LocalDateTime dateTime = LocalDateTime.now();
 
       if (resource.equals("/")) {
@@ -136,8 +167,36 @@ public class WebServer {
         // Content-Length
         pw.print(("Content-Length:  \r\n"));
         pw.flush();
+      } else if (resource.equals("/sushi")) {
+        System.out.println("This is sushi");
+        // Load the image from the filesystem
+        FileInputStream image = new FileInputStream("public_html/images/sushi.jpg");
+        System.out.println(image.toString());
+        // pw.write(response_200());
+        pw.print(("HTTP/1.1 200 OK\r\n"));
+        // Date
+        pw.print(("Date: " + dateTime.toString() + "\r\n"));
+        // Server
+        pw.print(("Server: " + server + "\r\n"));
+        // Content-Type
+        pw.print(("Content-Type: text/html; charset=utf-8\r\n"));
+        // Content-Length
+        pw.print(("Content-Length:  \r\n"));
+        bw.write(image.readAllBytes());;
+        image.close();
+        bw.flush();
       } else {
-        response_200();
+        // status200(pw);
+                // Status code
+        pw.print(("HTTP/1.1 200 OK\r\n"));
+        // Date
+        pw.print(("Date: " + dateTime.toString() + "\r\n"));
+        // Server
+        pw.print(("Server: " + server + "\r\n"));
+        // Content-Type
+        pw.print(("Content-Type: text/html; charset=utf-8\r\n"));
+        // Content-Length
+        pw.print(("Content-Length:  \r\n"));
         pw.print(("What are you looking for?"));
         pw.flush();
       }
