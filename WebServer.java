@@ -85,14 +85,19 @@ public class WebServer {
     if (resource.equals("/")) {
       // Status code
       pw.print(("HTTP/1.1 200 OK\r\n"));
+      pw.print("\r\n");
       // Date
       pw.print(("Date: " + dateTime.toString() + "\r\n"));
+      pw.print("\r\n");
       // Server
       pw.print(("Server: " + server + "\r\n"));
+      pw.print("\r\n");
       // Content-Type
       pw.print(("Content-Type: text/html; charset=utf-8\r\n"));
+      pw.print("\r\n");
       // Content-Length
-      pw.print(("Content-Length:  \r\n"));
+      pw.print(("Content-Length: 2 \r\n"));
+      pw.print("\r\n");
       pw.flush();
     } else {
       status200(pw);
