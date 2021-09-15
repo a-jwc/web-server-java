@@ -79,24 +79,18 @@ public class WebServer {
   private static void getRequest(Socket client, String resource) throws IOException {
     // Compare the "resource" to our list of things
     System.out.println("GET request resource from: " + resource);
-    PrintWriter pw = new PrintWriter(client.getOutputStream());
-    LocalDateTime dateTime = LocalDateTime.now();
-
+    // PrintWriter pw = new PrintWriter(client.getOutputStream());
+    BufferedWriter pw = new BufferedWriter(new OutputStreamWriter(client.getOutputStream()));
     if (resource.equals("/")) {
-      // Status code
-      pw.print(("HTTP/1.1 200 OK\r\n"));
-      // Date
-      pw.print(("Date: " + dateTime.toString() + "\r\n"));
-      // Server
-      pw.print(("Server: " + server + "\r\n"));
-      // Content-Type
-      pw.print(("Content-Type: text/html; charset=utf-8\r\n"));
-      // Content-Length
-      pw.print(("Content-Length:  \r\n"));
+      pw.write(response_200());
+      pw.flush();
+    } else if (resource.equals("/hello")) {
+      pw.write(response_200());
+      pw.write(("Hello World!"));
       pw.flush();
     } else {
-      status200(pw);
-      pw.print(("What are you looking for?"));
+      // response_200();
+      pw.write(("What are you looking for?"));
       pw.flush();
     }
   }
@@ -119,7 +113,7 @@ public class WebServer {
       pw.print(("Content-Length:  \r\n"));
       pw.flush();
     } else {
-      status200(pw);
+      response_200();
       pw.print(("What are you looking for?"));
       pw.flush();
     }
@@ -143,7 +137,7 @@ public class WebServer {
         pw.print(("Content-Length:  \r\n"));
         pw.flush();
       } else {
-        status200(pw);
+        response_200();
         pw.print(("What are you looking for?"));
         pw.flush();
       }
@@ -167,7 +161,7 @@ public class WebServer {
         pw.print(("Content-Length:  \r\n"));
         pw.flush();
       } else {
-        status200(pw);
+        response_200();
         pw.print(("What are you looking for?"));
         pw.flush();
       }
@@ -192,16 +186,18 @@ public class WebServer {
         pw.print(("Content-Length:  \r\n"));
         pw.flush();
       } else {
-        status200(pw);
+        response_200();
         pw.print(("What are you looking for?"));
         pw.flush();
       }
     }
 
-
-  private static void status200(PrintWriter pw) throws IOException {
-    pw.print(("HTTP/1.1 200 OK\r\n"));
-  }
+    private static String response_200() {
+      LocalDateTime dateTime = LocalDateTime.now();
+      String response = "HTTP/1.1 200 OK\r\n" + "Date: " + dateTime.toString() + "\r\n" + "Server: " + server + "\r\n"
+          + "Content-Type: text/html; charset=utf-8\r\n" + "Content-Length: \r\n".getBytes();
+      return response;
+    }
 
   private static void printRequest(StringBuilder request) {
     System.out.println("--REQUEST--");

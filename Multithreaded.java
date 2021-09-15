@@ -23,13 +23,6 @@ public class Multithreaded {
     while (true) {
       // Handle a new incoming message
       try {
-        // client <-- messages queued up in it!!
-        // client = serverSocket.accept();
-        // System.out.println("Debug: got new message " + client.toString());
-        // HttpRequestHandler httpRequest = new HttpRequestHandler(client);
-        // Thread thread = new Thread(httpRequest);
-        // thread.start();
-        // client.close();
         new Thread(
           new HttpRequestHandler(serverSocket.accept())
         ).start();
@@ -43,9 +36,9 @@ public class Multithreaded {
 final class HttpRequestHandler implements Runnable {
   final static String CRLF = "\r\n";
   private static String server = "Chau & Satumba";
-  private ServerSocket socket;
+  private Socket socket;
 
-  public HttpRequestHandler(ServerSocket socket) {
+  public HttpRequestHandler(Socket socket) {
     this.socket = socket;
   }
 
@@ -114,34 +107,33 @@ final class HttpRequestHandler implements Runnable {
 
   private static void getRequest(Socket client, String resource) throws IOException {
     // Compare the "resource" to our list of things
-    System.out.println("get request resource from: " + resource);
-    // OutputStream clientOutput = client.getOutputStream();
-    BufferedWriter clientOutput = new BufferedWriter(new OutputStreamWriter(client.getOutputStream()));
+    System.out.println("GET request resource from: " + resource);
+    // PrintWriter pw = new PrintWriter(client.getOutputStream());
+    BufferedWriter pw = new BufferedWriter(new OutputStreamWriter(client.getOutputStream()));
     resource = resource.toString();
     if (resource.equals("/")) {
-      clientOutput.write(("HTTP/1.1 200 OK\r\n"));
-      clientOutput.write(("\r\n"));
-      clientOutput.write(("What are you looking for?"));
-      clientOutput.flush();
+      pw.write(response_200());
+      pw.write(("What are you looking for?"));
+      pw.flush();
     } else if (resource.equals("/hello")) {
-      clientOutput.write(response_200());
-      clientOutput.write(("Hello World!"));
-      clientOutput.flush();
+      pw.write(response_200());
+      pw.write(("Hello World!"));
+      pw.flush();
     } else if (resource.equals("/sushi")) {
       System.out.println("This is sushi");
       // Load the image from the filesystem
       FileInputStream image = new FileInputStream("public_html/images/sushi.jpg");
       System.out.println(image.toString());
-      clientOutput.write(response_200());
-      // clientOutput.write(image);
+      pw.write(response_200());
+      // pw.write(image);
       image.close();
-      clientOutput.flush();
+      pw.flush();
     } else {
-      clientOutput.write(response_200());
-      clientOutput.write(("What are you looking for?"));
-      clientOutput.flush();
+      pw.write(response_200());
+      pw.write(("What are you looking for?"));
+      pw.flush();
     }
-    // clientOutput.flush();
+    // pw.flush();
   }
 
   private static void postRequest(Socket client, String body) {
