@@ -10,7 +10,7 @@ public class WebServer {
   private static final String server = "Chau & Satumba";
   private static int port = 8080;
   private static HashMap<String,String> configMap;
-  private static HashMap<String,String> mimeTypesMap;
+  private static HashMap<String,String[]> mimeTypesMap;
   private static String documentRoot;
   private static String logFile;
   private static String scriptAlias;

@@ -8,9 +8,10 @@ public class Configuration {
     final String httpdConfFile;
     final String mimeTypesFile;
     static HashMap<String, String> configMap;
-    static HashMap<String, String> mimeTypesMap;
+    static HashMap<String, String[]> mimeTypesMap;
  
     public Configuration(String httpdConfFile, String mimeTypesFile) {
+        System.out.println("⏳ Reading httpd.conf and mime.types...");
         this.httpdConfFile = httpdConfFile;
         this.mimeTypesFile = mimeTypesFile;
         try {
@@ -27,6 +28,7 @@ public class Configuration {
                     configMap.put(directive[0], directive[1]);
                     System.out.println(configMap.get(directive[0]));
                     sb.append(line + "\r\n");
+                    // TODO: handle aliases (/~traciely/ "/home/ajwc/SFSU/CSC667/Assignments/web-server/public_html/")
                 } 
             }
             br.close();
@@ -35,9 +37,10 @@ public class Configuration {
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
-            System.out.println("Successfully read in " + httpdConfFile + " and " + mimeTypesFile + "\n");
+            System.out.println("⏳ Moving to mime.types...");
         }
         try {
+            String[] fileExtension;
             mimeTypesMap = new HashMap<>();
             FileInputStream fis = new FileInputStream(mimeTypesFile);
             DataInputStream dis = new DataInputStream(fis);
@@ -47,13 +50,18 @@ public class Configuration {
             String mimeType[];
             while((line = br.readLine()) != null) {
                 if(!line.startsWith("#") && !line.isBlank()) {
-                    mimeType = line.split("\\s+", 2);
-                    if(mimeType.length < 1) {
-                        System.out.println(mimeTypesMap.size() + " : " + mimeType[0] + " " + mimeType[1]);
-                        mimeTypesMap.put(mimeType[0], mimeType[1]);
-                        System.out.println(mimeTypesMap.get(mimeType[0]));
+                    mimeType = line.split("\\s+", 2);                    
+                    if(mimeType.length == 2) {                        
+                        fileExtension = mimeType[1].trim().split("\\s+");
+                        // System.out.println(mimeTypesMap.size() + " : " + mimeType[0] + " " + mimeType[1]);
+                        mimeTypesMap.put(mimeType[0], fileExtension);
+                        // System.out.println(Arrays.toString(mimeTypesMap.get(mimeType[0])));
                         sb.append(line + "\r\n");
-                    }
+                    } 
+                    // else {
+                    //     fileExtension = new String[0];
+                    //     mimeTypesMap.put(mimeType[0], fileExtension);
+                    // }
                 }
             }
             br.close();
@@ -61,6 +69,8 @@ public class Configuration {
             fis.close();
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            System.out.println("⌛ ✨Successfully read in " + httpdConfFile + " and " + mimeTypesFile + "✨\n");
         }
     }
     public static void main(String[] args) throws IOException{
@@ -71,7 +81,7 @@ public class Configuration {
         return configMap;
     }
 
-    public HashMap<String, String> getMimeTypesMap() {
+    public HashMap<String, String[]> getMimeTypesMap() {
         return mimeTypesMap;
     }
 
