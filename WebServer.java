@@ -2,10 +2,14 @@ import java.io.*;
 import java.net.*;
 import java.time.*;
 
+import server.Configuration;
+
 public class WebServer {
   private static String server = "Chau & Satumba";
 
   public static void main(String[] args) throws Exception {
+    Configuration config = new Configuration("conf/httpd.conf");
+    config.readConfig();
     // Start recieving messages - ready to recieve messages!
     try (ServerSocket serverSocket = new ServerSocket(8080)) {
       System.out.println("Server started. \nListening for messages.");
@@ -19,8 +23,7 @@ public class WebServer {
       try (Socket client = serverSocket.accept()) {
         // client <-- messages queued up in it!!
         System.out.println("Debug: got new message " + client.toString());
-        // Read the request - listen to the messages
-        // Bytes -> Chars
+        // Read the request - listen to the messages; Bytes -> Chars        
         InputStreamReader isr = new InputStreamReader(client.getInputStream());
         // Reads text from char-input stream,
         BufferedReader br = new BufferedReader(isr);
@@ -28,21 +31,15 @@ public class WebServer {
         StringBuilder request = new StringBuilder();
         String line; // Temp variable called line that holds one line at a time of our message
 
-        String http_version = "";
         line = br.readLine();
         while (!line.isBlank()) {
           request.append(line + "\r\n");
-          if (line.contains("HTTP/1.1")) {
-            http_version = line;
-          }
           line = br.readLine();
         }
 
         System.out.println("--REQUEST--");
         System.out.println(request);
 
-        // printRequest(request);
-        // Decide how we'd like to respond
         checkRequest(client, request);
         client.close();
       }
@@ -51,12 +48,11 @@ public class WebServer {
 
   public static void checkRequest(Socket client, StringBuilder req) throws IOException {
     String reqArr[] = req.toString().split("\\r?\\n", 2);
-    // Get the first line of the request
-    String firstLine = reqArr[0];
-    // System.out.println("first line " + firstLine + "\nsecond line " + reqArr[1]);
-    // Get "resource" and "method" from first line
+    // Get the first line of the request; Get "resource" and "method" from first line
+    String firstLine = reqArr[0];    
     String method = firstLine.split(" ")[0];
     String resource = firstLine.split(" ")[1];
+
     switch (method) {
       case "GET":
         getRequest(client, resource);
@@ -85,19 +81,19 @@ public class WebServer {
 
     if (resource.equals("/")) {
       // Status code
-      pw.print(("HTTP/1.1 200 OK\r\n"));
+      pw.print(("HTTP/1.1 200 OK"));
       pw.print("\r\n");
       // Date
-      pw.print(("Date: " + dateTime.toString() + "\r\n"));
+      pw.print(("Date: " + dateTime.toString()));
       pw.print("\r\n");
       // Server
-      pw.print(("Server: " + server + "\r\n"));
+      pw.print(("Server: " + server));
       pw.print("\r\n");
       // Content-Type
-      pw.print(("Content-Type: text/html; charset=utf-8\r\n"));
+      pw.print(("Content-Type: text/html; charset=utf-8"));
       pw.print("\r\n");
       // Content-Length
-      pw.print(("Content-Length: 2 \r\n"));
+      pw.print(("Content-Length: 2"));
       pw.print("\r\n");
       pw.flush();
     } else if (resource.equals("/image")) {
@@ -118,6 +114,7 @@ public class WebServer {
       // Status code
       pw.print(("HTTP/1.1 200 OK\r\n"));
       pw.print("\r\n");
+      response_200(pw);
       //print
       pw.print(("What are you looking for?"));
       pw.print("\r\n");
@@ -127,26 +124,7 @@ public class WebServer {
 
   private static void postRequest(Socket client, String resource) throws IOException {
     System.out.println("POST request resource from: " + resource);
-    PrintWriter pw = new PrintWriter(client.getOutputStream());
-    LocalDateTime dateTime = LocalDateTime.now();
 
-    if (resource.equals("/")) {
-      // Status code
-      pw.print(("HTTP/1.1 201 Created\r\n"));
-      // Date
-      pw.print(("Date: " + dateTime.toString() + "\r\n"));
-      // Server
-      pw.print(("Server: " + server + "\r\n"));
-      // Content-Type
-      pw.print(("Content-Type: text/html; charset=utf-8\r\n"));
-      // Content-Length
-      pw.print(("Content-Length:  \r\n"));
-      pw.flush();
-    } else {
-      response_200();
-      pw.print(("What are you looking for?"));
-      pw.flush();
-    }
   }
 
   private static void headRequest(Socket client, String resource) throws IOException {
@@ -204,58 +182,33 @@ public class WebServer {
 
   private static void putRequest(Socket client, String resource) throws IOException {
       System.out.println("PUT request resource from: " + resource);
-      PrintWriter pw = new PrintWriter(client.getOutputStream());
-      LocalDateTime dateTime = LocalDateTime.now();
 
-      if (resource.equals("/")) {
-        // Status code
-        pw.print(("HTTP/1.1 200 OK\r\n"));
-        // Date
-        pw.print(("Date: " + dateTime.toString() + "\r\n"));
-        // Server
-        pw.print(("Server: " + server + "\r\n"));
-        // Content-Type
-        pw.print(("Content-Type: text/html; charset=utf-8\r\n"));
-        // Content-Length
-        pw.print(("Content-Length:  \r\n"));
-        pw.flush();
-      } else {
-        response_200();
-        pw.print(("What are you looking for?"));
-        pw.flush();
-      }
     }
 
 
   private static void deleteRequest(Socket client, String resource) throws IOException {
       System.out.println("DELETE request resource from: " + resource);
-      PrintWriter pw = new PrintWriter(client.getOutputStream());
-      LocalDateTime dateTime = LocalDateTime.now();
 
-      if (resource.equals("/")) {
-        // Status code
-        pw.print(("HTTP/1.1 200 OK\r\n"));
-        // Date
-        pw.print(("Date: " + dateTime.toString() + "\r\n"));
-        // Server
-        pw.print(("Server: " + server + "\r\n"));
-        // Content-Type
-        pw.print(("Content-Type: text/html; charset=utf-8\r\n"));
-        // Content-Length
-        pw.print(("Content-Length:  \r\n"));
-        pw.flush();
-      } else {
-        response_200();
-        pw.print(("What are you looking for?"));
-        pw.flush();
-      }
     }
 
-    private static String response_200() {
+
+    // * Print functions
+    private static void response_200(PrintWriter pw) {
       LocalDateTime dateTime = LocalDateTime.now();
-      String response = "HTTP/1.1 200 OK\r\n" + "Date: " + dateTime.toString() + "\r\n" + "Server: " + server + "\r\n"
-          + "Content-Type: text/html; charset=utf-8\r\n" + "Content-Length: \r\n".getBytes();
-      return response;
+      pw.print(("HTTP/1.1 200 OK"));
+      pw.print("\r\n");
+      // Date
+      pw.print(("Date: " + dateTime.toString()));
+      pw.print("\r\n");
+      // Server
+      pw.print(("Server: " + server));
+      pw.print("\r\n");
+      // Content-Type
+      pw.print(("Content-Type: text/html; charset=utf-8"));
+      pw.print("\r\n");
+      // Content-Length
+      pw.print(("Content-Length: 2"));
+      pw.print("\r\n");
     }
 
   private static void printRequest(StringBuilder request) {
@@ -290,3 +243,4 @@ public class WebServer {
   // return sb.toString();
   // }
 }
+
