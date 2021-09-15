@@ -96,30 +96,17 @@ public class WebServer {
 
     if (resource.equals("/")) {
       // Status code
-      pw.print(("HTTP/1.1 200 OK"));
+      pw.print(("HTTP/1.1 200 OK\r\n"));
       pw.print("\r\n");
-      // Date
-      pw.print(("Date: " + dateTime.toString()));
-      pw.print("\r\n");
-      // Server
-      pw.print(("Server: " + server));
-      pw.print("\r\n");
-      // Content-Type
-      pw.print(("Content-Type: text/html; charset=utf-8"));
-      pw.print("\r\n");
-      // Content-Length
-      pw.print(("Content-Length: 2"));
-      pw.print("\r\n");
+      response_200(pw);
       pw.flush();
     } else if (resource.equals("/image")) {
       //Send back an image
-
       // Load the image from the filesystem
       FileInputStream image = new FileInputStream("public_html/images/sushi.jpg");
       System.out.println(image.toString());
       // Turn the image into bytes?
       // Set the ContentType?
-
       OutputStream clientOutput = client.getOutputStream();
       clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
       clientOutput.write(("\r\n").getBytes());
