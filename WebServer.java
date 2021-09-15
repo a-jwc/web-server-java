@@ -100,47 +100,27 @@ public class WebServer {
       pw.print(("Content-Length: 2 \r\n"));
       pw.print("\r\n");
       pw.flush();
-    } else if (resource.equals("/sushi")) {
-      System.out.println("This is sushi");
+    } else if (resource.equals("/image")) {
+      //Send back an image
+
       // Load the image from the filesystem
       FileInputStream image = new FileInputStream("public_html/images/sushi.jpg");
-      OutputStream os = client.getOutputStream();
       System.out.println(image.toString());
-      // pw.write(response_200());
-      os.write(("HTTP/1.1 200 OK\r\n").getBytes());
-      os.write(("\r\n").getBytes());
-      // Date
-      os.write(("Date: " + dateTime.toString() + "\r\n").getBytes());
-      os.write(("\r\n").getBytes());
-      // Server
-      os.write(("Server: " + server + "\r\n").getBytes());
-      os.write(("\r\n").getBytes());
-      // Content-Type
-      os.write(("Content-Type: text/html; charset=utf-8\r\n").getBytes());
-      os.write(("\r\n").getBytes());
-      // Content-Length
-      os.write(("Content-Length:  \r\n").getBytes());
-      os.write(("\r\n").getBytes());
-      os.write(image.readAllBytes());
-      image.close();
-      os.flush();
+      // Turn the image into bytes?
+      // Set the ContentType?
+
+      OutputStream clientOutput = client.getOutputStream();
+      clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
+      clientOutput.write(("\r\n").getBytes());
+      clientOutput.write(image.readAllBytes());
+      clientOutput.flush();
     } else {
       // Status code
       pw.print(("HTTP/1.1 200 OK\r\n"));
       pw.print("\r\n");
-      // Date
-      pw.print(("Date: " + dateTime.toString() + "\r\n"));
-      pw.print("\r\n");
-      // Server
-      pw.print(("Server: " + server + "\r\n"));
-      pw.print("\r\n");
-      // Content-Type
-      pw.print(("Content-Type: text/html; charset=utf-8\r\n"));
-      pw.print("\r\n");
-      // Content-Length
-      pw.print(("Content-Length:  \r\n"));
-      pw.print("\r\n");
+      //print
       pw.print(("What are you looking for?"));
+      pw.print("\r\n");
       pw.flush();
     }
   }
