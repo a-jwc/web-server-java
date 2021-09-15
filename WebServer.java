@@ -1,17 +1,31 @@
 import java.io.*;
 import java.net.*;
 import java.time.*;
+import java.util.*;
+
 
 import server.Configuration;
 
 public class WebServer {
-  private static String server = "Chau & Satumba";
+
+  private static final String server = "Chau & Satumba";
+  private static int port = 8080;
+  private static HashMap<String,String> configMap;
+  private static String documentRoot;
+  private static String logFile;
+  private static String scriptAlias;
+  private static String alias;
+
+  public WebServer() {
+    Configuration config = new Configuration("conf/httpd.conf");
+    configMap = config.getConfigMap();
+    port = Integer.parseInt(configMap.get("Listen"));
+  }
 
   public static void main(String[] args) throws Exception {
-    Configuration config = new Configuration("conf/httpd.conf");
-    config.readConfig();
     // Start recieving messages - ready to recieve messages!
-    try (ServerSocket serverSocket = new ServerSocket(8080)) {
+    try (ServerSocket serverSocket = new ServerSocket(port)) {
+      WebServer webServer = new WebServer();
       System.out.println("Server started. \nListening for messages.");
       listenForReq(serverSocket);
     }
@@ -109,6 +123,7 @@ public class WebServer {
       clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
       clientOutput.write(("\r\n").getBytes());
       clientOutput.write(image.readAllBytes());
+      image.close();
       clientOutput.flush();
     } else {
       // Status code
