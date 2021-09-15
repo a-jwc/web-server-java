@@ -73,7 +73,7 @@ class Main {
               OutputStream clientOutput = client.getOutputStream();
               clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
               clientOutput.write(("\r\n").getBytes());
-              clientOutput.write(("What are you looking for?").getBytes());
+              clientOutput.write(("What are you looking for? Hello!").getBytes());
               clientOutput.flush();
 
             }
