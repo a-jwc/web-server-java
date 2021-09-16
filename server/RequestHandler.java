@@ -60,22 +60,24 @@ public class RequestHandler implements Runnable {
         String resource = firstLine.split(" ")[1];
     
         switch (method) {
-          case "GET":
-            getRequest(client, resource);
-            break;
-          case "POST":
-            postRequest(client, resource);
-            break;
-          case "HEAD":
-            headRequest(client, resource);
-            break;
-          case "PUT":
-            putRequest(client, resource);
-            break;
-          case "DELETE":
-            deleteRequest(client, resource);
-            break;
-        }
+            case "GET":
+              getRequest(client, resource);
+              break;
+            case "HEAD":
+              headRequest(client, resource);
+              break;
+            case "POST":
+              String sixthLine = reqArr[5];
+              postRequest(client, resource, fifthLine, sixthLine);
+              break;
+            case "PUT":
+              String sixthLines = reqArr[5];
+              putRequest(client, resource, fifthLine, sixthLines);
+              break;
+            case "DELETE":
+              deleteRequest(client, resource);
+              break;
+          }
     }
     private static void getRequest(Socket client, String resource) throws IOException {
         // Compare the "resource" to our list of things
