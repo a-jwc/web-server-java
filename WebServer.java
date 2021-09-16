@@ -3,7 +3,7 @@ import java.net.*;
 import java.time.*;
 import java.util.*;
 
-import server.Configuration;
+import server.*;
 
 public class WebServer {
 
@@ -28,7 +28,21 @@ public class WebServer {
     try (ServerSocket serverSocket = new ServerSocket(port)) {
       WebServer webServer = new WebServer();
       System.out.println("Server started. \nListening for messages.");
-      listenForReq(serverSocket);
+      start(serverSocket);
+      serverSocket.close();
+    }
+  }
+
+  private static void start(ServerSocket serverSocket) throws IOException {
+    while (true) {
+      // Handle a new incoming message
+      try {
+        new Thread(
+          new RequestHandler(serverSocket.accept())
+        ).start();
+      } catch (SocketException e) {
+        e.printStackTrace();
+      }
     }
   }
 
