@@ -69,9 +69,7 @@ public class WebServer {
     String firstLine = reqArr[0];
     String resource = firstLine.split(" ")[1];
     String method = firstLine.split(" ")[0];
-    String secondLine = reqArr[1];
-    String thirdLine = reqArr[2];
-    String fourthLine = reqArr[3];
+
     String fifthLine = reqArr[4];
 
     switch (method) {
@@ -159,19 +157,17 @@ public class WebServer {
       OutputStream clientOutput = client.getOutputStream();
       clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
       clientOutput.write(("\r\n").getBytes());
-
       //Status Code
       clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
       // Date
       clientOutput.write(("Date: " + dateTime.toString() + "\r\n").getBytes());
       // Server
       clientOutput.write(("Server: " + server + "\r\n").getBytes());
-      // Content-Type
-      clientOutput.write((sixthLine + "\r\n").getBytes());
       // Content-Length
       clientOutput.write((fifthLine + "\r\n").getBytes());
+      // Content-Type
+      clientOutput.write((sixthLine + "\r\n").getBytes());
       clientOutput.flush();
-
     }
 
   private static void putRequest(Socket client, String resource, String fifthLine, String sixthLines) throws IOException {
@@ -181,44 +177,38 @@ public class WebServer {
       OutputStream clientOutput = client.getOutputStream();
       clientOutput.write(("HTTP/1.1 201 Created\r\n").getBytes());
       clientOutput.write(("\r\n").getBytes());
-
       //Status Code
       clientOutput.write(("HTTP/1.1 201 Created" + "\r\n").getBytes());
       // Date
       clientOutput.write(("Date: " + dateTime.toString() + "\r\n").getBytes());
       // Server
       clientOutput.write(("Server: " + server + "\r\n").getBytes());
-      // Content-Type
-      clientOutput.write((sixthLines + "\r\n").getBytes());
       // Content-Length
       clientOutput.write((fifthLine + "\r\n").getBytes());
+      // Content-Type
+      clientOutput.write((sixthLines + "\r\n").getBytes());
       clientOutput.flush();
-
-
     }
 
 
   private static void deleteRequest(Socket client, String resource) throws IOException {
       System.out.println("DELETE request resource from: " + resource);
-
       LocalDateTime dateTime = LocalDateTime.now();
 
       OutputStream clientOutput = client.getOutputStream();
       clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
       clientOutput.write(("\r\n").getBytes());
-
       //Status Code
       clientOutput.write(("HTTP/1.1 204 Delete File" + "\r\n").getBytes());
       // Date
       clientOutput.write(("Date: " + dateTime.toString() + "\r\n").getBytes());
       // Server
       clientOutput.write(("Server: " + server + "\r\n").getBytes());
-      // Content-Type
-      clientOutput.write(("Content-Type: text/html; charset=utf-8" + "\r\n").getBytes());
       // Content-Length
       clientOutput.write(("Content-Length: 0" + "\r\n").getBytes());
+      // Content-Type
+      clientOutput.write(("Content-Type: text/html; charset=utf-8" + "\r\n").getBytes());
       clientOutput.flush();
-
     }
 
 
@@ -233,11 +223,11 @@ public class WebServer {
       // Server
       pw.print(("Server: " + server));
       pw.print("\r\n");
-      // Content-Type
-      pw.print(("Content-Type: text/html; charset=utf-8"));
-      pw.print("\r\n");
       // Content-Length
       pw.print(("Content-Length: 0" ));
+      pw.print("\r\n");
+      // Content-Type
+      pw.print(("Content-Type: text/html; charset=utf-8"));
       pw.print("\r\n");
     }
 
@@ -259,7 +249,6 @@ public class WebServer {
     writer.write("Server: itsmejrob\r\n");
     writer.write("WW-Authenticate: Basic\r\n");
     writer.flush();
-
   }
 
   // private static String getBody(BufferedReader req) {
