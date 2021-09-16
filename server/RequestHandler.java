@@ -59,7 +59,11 @@ public class RequestHandler implements Runnable {
         String firstLine = reqArr[0];
         String method = firstLine.split(" ")[0];
         String resource = firstLine.split(" ")[1];
-
+        String secondLine = reqArr[1];
+        String thirdLine = reqArr[2];
+        String fourthLine = reqArr[3];
+        String fifthLine = reqArr[4];
+        
         switch (method) {
             case "GET":
                 getRequest(client, resource);
