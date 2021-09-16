@@ -101,11 +101,14 @@ public class WebServer {
     LocalDateTime dateTime = LocalDateTime.now();
 
     if (resource.equals("/")) {
-      // Status code
-      pw.print(("HTTP/1.1 200 OK\r\n"));
-      pw.print("\r\n");
-      response_200(pw);
-      pw.flush();
+      // Load the image from the filesystem
+      FileInputStream indexHTML = new FileInputStream("public_html/ab1/ab2/index.html");
+      OutputStream clientOutput = client.getOutputStream();
+      clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
+      clientOutput.write(("\r\n").getBytes());
+      clientOutput.write(indexHTML.readAllBytes());
+      indexHTML.close();
+      clientOutput.flush();
     } else if (resource.equals("/image")) {
       //Send back an image
       // Load the image from the filesystem
@@ -119,13 +122,42 @@ public class WebServer {
       clientOutput.write(image.readAllBytes());
       image.close();
       clientOutput.flush();
+    } else if (resource.equals("/400")) {
+      // Status code
+      pw.print(("HTTP/1.1 400 Not Found\r\n"));
+      pw.print("\r\n");
+      //print
+      pw.print(("HTTP/1.1 400 Not Found\r\n"));
+      // Date
+      pw.print(("Date: " + dateTime.toString()));
+      pw.print("\r\n");
+      // Server
+      pw.print(("Server: " + server));
+      pw.print("\r\n");
+      // Content-Length
+      pw.print(("Content-Length: 0" ));
+      pw.print("\r\n");
+      // Content-Type
+      pw.print(("Content-Type: text/html; charset=utf-8"));
+      pw.print("\r\n");
+      pw.flush();
     } else {
       // Status code
-      pw.print(("HTTP/1.1 200 OK\r\n"));
+      pw.print(("HTTP/1.1 404 Not Found\r\n"));
       pw.print("\r\n");
-      response_200(pw);
       //print
-      pw.print(("What are you looking for?"));
+      pw.print(("HTTP/1.1 404 Not Found\r\n"));
+      // Date
+      pw.print(("Date: " + dateTime.toString()));
+      pw.print("\r\n");
+      // Server
+      pw.print(("Server: " + server));
+      pw.print("\r\n");
+      // Content-Length
+      pw.print(("Content-Length: 0" ));
+      pw.print("\r\n");
+      // Content-Type
+      pw.print(("Content-Type: text/html; charset=utf-8"));
       pw.print("\r\n");
       pw.flush();
     }
@@ -138,13 +170,34 @@ public class WebServer {
       LocalDateTime dateTime = LocalDateTime.now();
 
       if (resource.equals("/")) {
-        // Status code
-        response_200(pw);
-        pw.flush();
+        // Load the image from the filesystem
+        FileInputStream indexHTML = new FileInputStream("public_html/ab1/ab2/index.html");
+        OutputStream clientOutput = client.getOutputStream();
+        clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
+        clientOutput.write(("Date: " + dateTime.toString() + "\r\n").getBytes());
+        // Server
+        clientOutput.write(("Server: " + server + "\r\n").getBytes());
+        // Content-Length
+        clientOutput.write(("Content-Length: 0" + "\r\n").getBytes());
+        // Content-Type
+        clientOutput.write(("Content-Type: text/html; charset=utf-8" + "\r\n").getBytes());
+        clientOutput.write(indexHTML.readAllBytes());
+        indexHTML.close();
+        clientOutput.flush();
       } else {
         // Status code
-        response_200(pw);
-        pw.print(("What are you looking for?"));
+        pw.print(("HTTP/1.1 404 Not Found\r\n"));
+        // Date
+        pw.print(("Date: " + dateTime.toString()));
+        pw.print("\r\n");
+        // Server
+        pw.print(("Server: " + server));
+        pw.print("\r\n");
+        // Content-Length
+        pw.print(("Content-Length: 0" ));
+        pw.print("\r\n");
+        // Content-Type
+        pw.print(("Content-Type: text/html; charset=utf-8"));
         pw.print("\r\n");
         pw.flush();
       }
