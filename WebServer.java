@@ -195,24 +195,24 @@ public class WebServer {
     }
 
 
-    // * Print functions
-    private static void response_200(PrintWriter pw) {
-      LocalDateTime dateTime = LocalDateTime.now();
-      pw.print(("HTTP/1.1 200 OK"));
-      pw.print("\r\n");
-      // Date
-      pw.print(("Date: " + dateTime.toString()));
-      pw.print("\r\n");
-      // Server
-      pw.print(("Server: " + server));
-      pw.print("\r\n");
-      // Content-Type
-      pw.print(("Content-Type: text/html; charset=utf-8"));
-      pw.print("\r\n");
-      // Content-Length
-      pw.print(("Content-Length: 2"));
-      pw.print("\r\n");
-    }
+  // * Print functions
+  private static void response_200(PrintWriter pw) {
+    LocalDateTime dateTime = LocalDateTime.now();
+    pw.print(("HTTP/1.1 200 OK"));
+    pw.print("\r\n");
+    // Date
+    pw.print(("Date: " + dateTime.toString()));
+    pw.print("\r\n");
+    // Server
+    pw.print(("Server: " + server));
+    pw.print("\r\n");
+    // Content-Type
+    pw.print(("Content-Type: text/html; charset=utf-8"));
+    pw.print("\r\n");
+    // Content-Length
+    pw.print(("Content-Length: 2"));
+    pw.print("\r\n");
+  }
 
   private static void printRequest(StringBuilder request) {
     System.out.println("--REQUEST--");
