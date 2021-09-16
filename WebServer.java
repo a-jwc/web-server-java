@@ -141,6 +141,25 @@ public class WebServer {
       pw.print(("Content-Type: text/html; charset=utf-8"));
       pw.print("\r\n");
       pw.flush();
+    } else if (resource.equals("/500")) {
+      // Status code
+      pw.print(("HTTP/1.1 500 Internal Server Error\r\n"));
+      pw.print("\r\n");
+      //print
+      pw.print(("HTTP/1.1 500 Internal Server Error\r\n"));
+      // Date
+      pw.print(("Date: " + dateTime.toString()));
+      pw.print("\r\n");
+      // Server
+      pw.print(("Server: " + server));
+      pw.print("\r\n");
+      // Content-Length
+      pw.print(("Content-Length: 0" ));
+      pw.print("\r\n");
+      // Content-Type
+      pw.print(("Content-Type: text/html; charset=utf-8"));
+      pw.print("\r\n");
+      pw.flush();
     } else {
       // Status code
       pw.print(("HTTP/1.1 404 Not Found\r\n"));
@@ -184,6 +203,38 @@ public class WebServer {
         clientOutput.write(indexHTML.readAllBytes());
         indexHTML.close();
         clientOutput.flush();
+      } else if (resource.equals("/400")) {
+        // Status code
+        pw.print(("HTTP/1.1 400 Bad Request\r\n"));
+        // Date
+        pw.print(("Date: " + dateTime.toString()));
+        pw.print("\r\n");
+        // Server
+        pw.print(("Server: " + server));
+        pw.print("\r\n");
+        // Content-Length
+        pw.print(("Content-Length: 0" ));
+        pw.print("\r\n");
+        // Content-Type
+        pw.print(("Content-Type: text/html; charset=utf-8"));
+        pw.print("\r\n");
+        pw.flush();
+      } else if (resource.equals("/500")) {
+        // Status code
+        pw.print(("HTTP/1.1 500 Internal Server Error\r\n"));
+        // Date
+        pw.print(("Date: " + dateTime.toString()));
+        pw.print("\r\n");
+        // Server
+        pw.print(("Server: " + server));
+        pw.print("\r\n");
+        // Content-Length
+        pw.print(("Content-Length: 0" ));
+        pw.print("\r\n");
+        // Content-Type
+        pw.print(("Content-Type: text/html; charset=utf-8"));
+        pw.print("\r\n");
+        pw.flush();
       } else {
         // Status code
         pw.print(("HTTP/1.1 404 Not Found\r\n"));
