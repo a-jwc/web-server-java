@@ -60,6 +60,5 @@ public class WebServer {
     writer.write("Server: itsmejrob\r\n");
     writer.write("WW-Authenticate: Basic\r\n");
     writer.flush();
-
   }
 }
