@@ -303,7 +303,7 @@ public class WebServer {
       clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
       clientOutput.write(("\r\n").getBytes());
       //Status Code
-      clientOutput.write(("HTTP/1.1 204 Delete File" + "\r\n").getBytes());
+      clientOutput.write(("HTTP/1.1 204 No Content" + "\r\n").getBytes());
       // Date
       clientOutput.write(("Date: " + dateTime.toString() + "\r\n").getBytes());
       // Server
