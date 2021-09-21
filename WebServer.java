@@ -110,16 +110,19 @@ public class WebServer {
       indexHTML.close();
       clientOutput.flush();
     } else if (resource.equals("/image")) {
-      //Send back an image
       // Load the image from the filesystem
       FileInputStream image = new FileInputStream("public_html/images/sushi.jpg");
-      System.out.println(image.toString());
-      // Turn the image into bytes?
-      // Set the ContentType?
       OutputStream clientOutput = client.getOutputStream();
       clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
       clientOutput.write(("\r\n").getBytes());
       clientOutput.write(image.readAllBytes());
+      clientOutput.write(("Date: " + dateTime.toString() + "\r\n").getBytes());
+      // Server
+      clientOutput.write(("Server: " + server + "\r\n").getBytes());
+      // Content-Length
+      clientOutput.write(("Content-Length: 0" + "\r\n").getBytes());
+      // Content-Type
+      clientOutput.write(("Content-Type: image/jpg; charset=utf-8" + "\r\n").getBytes());
       image.close();
       clientOutput.flush();
     } else if (resource.equals("/400")) {
@@ -352,10 +355,8 @@ public class WebServer {
       // Content-Type
       pw.print(("Content-Type: text/html; charset=utf-8"));
       pw.print("\r\n");
-      // If modified since
-      pw.print(("If Modified Since: " + dateTime.toString()));
-      pw.print("\r\n");
     }
+
 
   private static void printRequest(StringBuilder request) {
     System.out.println("--REQUEST--");
