@@ -160,6 +160,25 @@ public class WebServer {
       pw.print(("Content-Type: text/html; charset=utf-8"));
       pw.print("\r\n");
       pw.flush();
+    } else if (resource.equals("/304")) {
+      // Status code
+      pw.print(("HTTP/1.1 200 OK\r\n"));
+      pw.print("\r\n");
+      //print
+      pw.print(("HTTP/1.1 304 Not Modified\r\n"));
+      // Date
+      pw.print(("Date: " + dateTime.toString()));
+      pw.print("\r\n");
+      // Server
+      pw.print(("Server: " + server));
+      pw.print("\r\n");
+      // Content-Length
+      pw.print(("Content-Length: 0" ));
+      pw.print("\r\n");
+      // Content-Type
+      pw.print(("Content-Type: text/html; charset=utf-8"));
+      pw.print("\r\n");
+      pw.flush();
     } else {
       // Status code
       pw.print(("HTTP/1.1 404 Not Found\r\n"));
@@ -332,6 +351,9 @@ public class WebServer {
       pw.print("\r\n");
       // Content-Type
       pw.print(("Content-Type: text/html; charset=utf-8"));
+      pw.print("\r\n");
+      // If modified since
+      pw.print(("If Modified Since: " + dateTime.toString()));
       pw.print("\r\n");
     }
 
