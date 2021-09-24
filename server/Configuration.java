@@ -7,7 +7,7 @@ import java.util.*;
 public class Configuration {
     final String httpdConfFile;
     final String mimeTypesFile;
-    static HashMap<String, String[]> configMap;
+    static HashMap<String, ArrayList<String>> configMap;
     static HashMap<String, String[]> mimeTypesMap;
  
     public Configuration(String httpdConfFile, String mimeTypesFile) {
@@ -22,17 +22,22 @@ public class Configuration {
             StringBuilder sb = new StringBuilder();
             String line;
             String directive[];
-            String alias[];
+            ArrayList<String> alias = new ArrayList<>();
             while((line = br.readLine()) != null) {
                 if(!line.startsWith("#") && !line.isBlank()) {
-                    directive = line.split("\\s+", 2);      
+                    directive = line.split("\\s+", 3);      
                     if(directive.length == 3) {
-                        alias = directive[1].trim().split("\\s+");
+                        // alias = directive[1].trim().split("\\s+");
+                        alias.add(directive[1]);
+                        alias.add(directive[2]);
                         configMap.put(directive[0], alias);
                     } else {
-                        alias = directive;
+                        alias.add(directive[1]);
                         configMap.put(directive[0], alias);
-                    }        
+                    }    
+                    System.out.println(directive[0] + " : " + alias);
+                    System.out.println(configMap);
+                    alias.clear();    
                     sb.append(line + "\r\n");   
                     // TODO: handle aliases (/~traciely/ "/home/ajwc/SFSU/CSC667/Assignments/web-server/public_html/")
                 } 
@@ -83,7 +88,7 @@ public class Configuration {
 
     }
 
-    public HashMap<String, String[]> getConfigMap() {
+    public HashMap<String, ArrayList<String>> getConfigMap() {
         return configMap;
     }
 
@@ -93,7 +98,7 @@ public class Configuration {
 
     private void checkDirectives() {
         for(String i : configMap.keySet()) {
-            getDirective(i);
+            // getDirective(i);
         }
         // switch(configMap) {
         //     case "Listen": {
@@ -122,7 +127,7 @@ public class Configuration {
         // }
     }
 
-    public String[] getDirective(String directive) {
-        return configMap.get(directive);
-    }
+    // public String[] getDirective(String directive) {
+    //     return configMap.get(directive);
+    // }
 }
