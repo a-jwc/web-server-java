@@ -22,7 +22,13 @@ public class Configuration {
             StringBuilder sb = new StringBuilder();
             String line;
             String directive[];
+            
             while((line = br.readLine()) != null) {
+                // if(!line.startsWith("#") && !line.isBlank() && line.contains("lias")) {
+                //     directive = line.split(" ", 3);
+                //     String alias[] = {directive[1], directive[2]};
+                //     configMap.put(directive[0], alias);
+                // }
                 if(!line.startsWith("#") && !line.isBlank()) {
                     directive = line.split(" ", 2);
                     configMap.put(directive[0], directive[1]);
@@ -31,6 +37,7 @@ public class Configuration {
                     // TODO: handle aliases (/~traciely/ "/home/ajwc/SFSU/CSC667/Assignments/web-server/public_html/")
                 } 
             }
+            // print(configMap)
             br.close();
             dis.close();
             fis.close();
