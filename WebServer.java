@@ -6,19 +6,16 @@ import java.util.*;
 import server.*;
 
 public class WebServer {
-
-  
   public WebServer() {
-    
-  }
-
-  public static void main(String[] args) throws Exception {
 
   }
 
-  private static void start(ServerSocket serverSocket) throws IOException {
-
+  public static void main(String[] args) {
+    Server server = new Server();
+    try {
+      server.start();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
-
-  
 }
