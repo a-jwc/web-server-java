@@ -9,7 +9,7 @@ public class WebServer {
 
   private static final String server = "Chau & Satumba";
   private static int port = 8080;
-  private static HashMap<String,String> configMap;
+  private static HashMap<String,ArrayList<String>> configMap;
   private static HashMap<String,String[]> mimeTypesMap;
   private static String documentRoot;
   private static String logFile;
@@ -20,7 +20,8 @@ public class WebServer {
     Configuration config = new Configuration("conf/httpd.conf", "conf/mime.types");
     configMap = config.getConfigMap();
     mimeTypesMap = config.getMimeTypesMap();
-    port = Integer.parseInt(configMap.get("Listen"));
+    System.out.println(configMap.get("Listen"));
+    // port = Integer.parseInt(configMap.get("Listen").get(0).toString());
   }
 
   public static void main(String[] args) throws Exception {
