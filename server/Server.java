@@ -27,20 +27,7 @@ public class Server {
     }
 
     public void start() throws IOException {
-        try (ServerSocket serverSocket = new ServerSocket(port)) {
-            System.out.println("Server started. \nListening for messages.");
-            while (true) {
-                // Handle a new incoming message
-                try {
-                    // there is some thread that is responsible for handling the request
-                    // Pass the socket to a new thread called worker
-                    new Thread(new Worker(serverSocket.accept())).start();
-                } catch (SocketException e) {
-                    e.printStackTrace();
-                }
-            }
-            // serverSocket.close();
-        }
+        new Thread(new Worker(port)).start();
     }
 
 }

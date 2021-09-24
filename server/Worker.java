@@ -9,22 +9,44 @@ public class Worker implements Runnable {
     final static String CRLF = "\r\n";
     private static String server = "Chau & Satumba";
     private Socket socket;
+    private int port;
 
-    public Worker(Socket socket) {
-        this.socket = socket;
+    public Worker(int port) {
+        try {
+            // this.socket = serverSocket;
+            this.port = port;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
     }
 
     @Override
     public void run() {
-        try {
-            proccessRequest();
-        } catch (Exception e) {
-            e.printStackTrace();
+        ServerSocket serverSocket = null;
+        System.out.println("📭 Server started. \nListening for messages.");
+        while (true) {
+            // Handle a new incoming message
+            try {
+                serverSocket = new ServerSocket(port);
+                // there is some thread that is responsible for handling the request
+                // Pass the socket to a new thread called worker
+                serverSocket.accept();
+                proccessRequest();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    serverSocket.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
     private void proccessRequest() throws IOException {
-        while (true) {
+        // while (true) {
             // Handle a new incoming message
             // try (Socket client = serverSocket.accept()) {
             // client <-- messages queued up in it!!
@@ -49,7 +71,7 @@ public class Worker implements Runnable {
             checkRequest(socket, request);
             // client.close();
             // }
-        }
+        // }
     }
 
     public static void checkRequest(Socket client, StringBuilder req) throws IOException {
@@ -87,11 +109,10 @@ public class Worker implements Runnable {
         // Compare the "resource" to our list of things
         System.out.println("GET request resource from: " + resource);
         PrintWriter pw = new PrintWriter(client.getOutputStream());
-        BufferedOutputStream bw = new BufferedOutputStream(client.getOutputStream());
+        System.out.println("requesting /");
         LocalDateTime dateTime = LocalDateTime.now();
 
         if (resource.equals("/")) {
-            // Load the image from the filesystem
             FileInputStream indexHTML = new FileInputStream("public_html/ab1/ab2/index.html");
             OutputStream clientOutput = client.getOutputStream();
             clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
