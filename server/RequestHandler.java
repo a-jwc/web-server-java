@@ -53,17 +53,16 @@ public class RequestHandler implements Runnable {
     }
 
     public static void checkRequest(Socket client, StringBuilder req) throws IOException {
-        String reqArr[] = req.toString().split("\\r?\\n", 2);
-        // Get the first line of the request; Get "resource" and "method" from first
-        // line
+        String reqArr[] = req.toString().split("\\r?\\n", 10);
+        // Get the first line of the request; Get "resource" and "method" from first line
         String firstLine = reqArr[0];
-        String method = firstLine.split(" ")[0];
         String resource = firstLine.split(" ")[1];
+        String method = firstLine.split(" ")[0];
         String secondLine = reqArr[1];
         String thirdLine = reqArr[2];
         String fourthLine = reqArr[3];
         String fifthLine = reqArr[4];
-        
+
         switch (method) {
             case "GET":
                 getRequest(client, resource);

@@ -7,7 +7,7 @@ import java.util.*;
 public class Configuration {
     final String httpdConfFile;
     final String mimeTypesFile;
-    static HashMap<String, String> configMap;
+    static HashMap<String, String[]> configMap;
     static HashMap<String, String[]> mimeTypesMap;
  
     public Configuration(String httpdConfFile, String mimeTypesFile) {
@@ -22,12 +22,18 @@ public class Configuration {
             StringBuilder sb = new StringBuilder();
             String line;
             String directive[];
+            String alias[];
             while((line = br.readLine()) != null) {
                 if(!line.startsWith("#") && !line.isBlank()) {
-                    directive = line.split(" ", 2);
-                    configMap.put(directive[0], directive[1]);
-                    System.out.println(configMap.get(directive[0]));
-                    sb.append(line + "\r\n");
+                    directive = line.split("\\s+", 2);      
+                    if(directive.length == 3) {
+                        alias = directive[1].trim().split("\\s+");
+                        configMap.put(directive[0], alias);
+                    } else {
+                        alias = directive;
+                        configMap.put(directive[0], alias);
+                    }        
+                    sb.append(line + "\r\n");   
                     // TODO: handle aliases (/~traciely/ "/home/ajwc/SFSU/CSC667/Assignments/web-server/public_html/")
                 } 
             }
@@ -77,7 +83,7 @@ public class Configuration {
 
     }
 
-    public HashMap<String, String> getConfigMap() {
+    public HashMap<String, String[]> getConfigMap() {
         return configMap;
     }
 
@@ -116,10 +122,7 @@ public class Configuration {
         // }
     }
 
-    private String getServerRoot() {
-        return configMap.get("Listen");
-    }
-    public String getDirective(String directive) {
+    public String[] getDirective(String directive) {
         return configMap.get(directive);
     }
 }
