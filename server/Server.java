@@ -8,8 +8,8 @@ import java.util.*;
 public class Server {
     private static final String server = "Chau & Satumba";
     private static int port;
-    private HashMap<String, String> configMap;
-    private HashMap<String, String[]> mimeTypesMap;
+    private Hashtable<String, String> configMap;
+    private Hashtable<String, String[]> mimeTypesMap;
     private static String documentRoot;
     private static String logFile;
     private static String scriptAlias;
@@ -20,7 +20,6 @@ public class Server {
         this.configMap = config.getConfigMap();
         this.mimeTypesMap = config.getMimeTypesMap();
         port = Integer.parseInt(configMap.get("Listen".toString()));
-        
     }
 
     public static void main(String[] args) throws Exception {
