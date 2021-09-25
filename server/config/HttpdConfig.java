@@ -1,34 +1,35 @@
 package server.config;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class HttpdConfig {
-    // * Hash table to hold directives, aliases and paths
-    private static Hashtable<String,String> httpdConfigTable;
+    // * Hash Map to hold directives, aliases and paths
+    private static ConcurrentHashMap<String,String> httpdConfigMap;
 
-    public HttpdConfig(Hashtable<String,String> config) {
-        httpdConfigTable = config;
+    public HttpdConfig(ConcurrentHashMap<String,String> config) {
+        httpdConfigMap = config;
     }
 
     public int getListen(String listenPort) {
-        return Integer.parseInt(httpdConfigTable.get(listenPort));
+        return Integer.parseInt(httpdConfigMap.get(listenPort));
         // return 0;
     }
 
-    public Hashtable<String,String> getTable() {
-        return httpdConfigTable;
+    public ConcurrentHashMap<String,String> getMap() {
+        return httpdConfigMap;
     }
 
     public void printAll() {
-        System.out.println(httpdConfigTable.entrySet());
+        System.out.println(httpdConfigMap.entrySet());
     }
 
     public String getabAlias(String abAlias) {
-        return httpdConfigTable.get(abAlias);
+        return httpdConfigMap.get(abAlias);
     }
 
     public String getDocumentRoot(String documentRoot) {
-        return httpdConfigTable.get(documentRoot);
+        return httpdConfigMap.get(documentRoot);
     }
 
     public String getDirectoryIndex() {
@@ -36,6 +37,6 @@ public class HttpdConfig {
     }
 
     public String getScriptAlias(String scriptAlias) {
-        return httpdConfigTable.get(scriptAlias);
+        return httpdConfigMap.get(scriptAlias);
     }
 }

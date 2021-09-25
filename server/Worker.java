@@ -22,21 +22,26 @@ public class Worker implements Runnable {
     private static String directoryIndex;
     private static HttpdConfig httpdConfig;
     private static MimeTypes mimeTypes;
+    private static String contentType;
+    private static String extension;
+
+
 
     public Worker(Socket socket) {
         this.socket = socket;
         // * Instantiate new Configuration object
         Configuration config = new Configuration("conf/httpd.conf", "conf/mime.types");
+        config.readHttpdConfig(); config.readMimeTypes();        
         // * Local access to the directives via httpdConfig object
-        Worker.httpdConfig = new HttpdConfig(config.getConfigTable());
+        httpdConfig = new HttpdConfig(config.getConfigMap());
         // * Local access to the mime types via mimeTypes object
-        Worker.mimeTypes = new MimeTypes(config.getMimeTypesTable());
+        mimeTypes = new MimeTypes(config.getMimeTypesMap());
     }
 
     @Override
     public void run() {
         try {
-            System.out.println("🎈 Thread-" + Thread.currentThread().getName() + " running.");
+            System.out.println("🎈 " + Thread.currentThread().getName() + " running.");
             proccessRequest();
         } catch (Exception e) {
             e.printStackTrace();
@@ -59,7 +64,6 @@ public class Worker implements Runnable {
                 while (!line.isEmpty()) {
                     request.append(line + "\r\n");
                     line = br.readLine();
-                    // System.out.println(request);
                     count++;
                 }
 
@@ -113,18 +117,29 @@ public class Worker implements Runnable {
         System.out.println("GET request resource from: " + resource);
         // System.out.println(client);
         PrintWriter pw = new PrintWriter(client.getOutputStream());
-        BufferedOutputStream bw = new BufferedOutputStream(client.getOutputStream());
         LocalDateTime dateTime = LocalDateTime.now();
 
-        // * Print out httpdConfigTable values (paths)
-        // for(Map.Entry<String, String> e : httpdConfig.getTable().entrySet()) {
-        // System.out.println(e.getKey() + " " + e.getValue());
-        // }
+        // * Get the content type by looping through the set of keys which are string arrays that contain the extensions 
+        if(resource.contains(".")) {
+            extension = resource.substring(resource.lastIndexOf(".") + 1);
+            System.out.println("Extension: " + extension);
+            for(String[] eleArray : mimeTypes.getMap().keySet()) {
+                for(int j = 0; j < eleArray.length; j++) {
+                    if(eleArray[j].equals(extension)) {
+                        contentType = mimeTypes.getMap().get(eleArray);
+                    }
+                }
+            }
+        }
+        // System.out.println("Content type: " + contentType);                
+
+        // * Get document roots and index from hash Map
+        documentRoot = httpdConfig.getDocumentRoot("DocumentRoot");
+        directoryIndex = httpdConfig.getDirectoryIndex();
+        // System.out.println("mimetypes: " + mimeTypes.getMap().entrySet());
         System.out.println("Socket object: " + client);
         if (resource.equals("/")) {
             // Load the image from the filesystem
-            documentRoot = httpdConfig.getDocumentRoot("DocumentRoot");
-            directoryIndex = httpdConfig.getDirectoryIndex();
             FileInputStream indexHTML = new FileInputStream(documentRoot + "/" + directoryIndex);
             OutputStream clientOutput = client.getOutputStream();
             clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
@@ -133,10 +148,10 @@ public class Worker implements Runnable {
             indexHTML.close();
             clientOutput.flush();
             // System.out.println("2: " + client);
-
-        } else if (resource.equals("/image")) {
+        } else if (resource.contains("/image")) {
             // Load the image from the filesystem
-            FileInputStream image = new FileInputStream("./public_html/images/sushi.jpg");
+            // FileInputStream image = new FileInputStream("./public_html/images/sushi.jpg");
+            FileInputStream image = new FileInputStream(documentRoot + resource);
             OutputStream clientOutput = client.getOutputStream();
             clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
             clientOutput.write(("\r\n").getBytes());
@@ -147,7 +162,7 @@ public class Worker implements Runnable {
             // Content-Length
             clientOutput.write(("Content-Length: 0" + "\r\n").getBytes());
             // Content-Type
-            clientOutput.write(("Content-Type: image/jpg; charset=utf-8" + "\r\n").getBytes());
+            clientOutput.write(("Content-Type: " + contentType + "\r\n").getBytes());
             image.close();
             clientOutput.flush();
         } else if (resource.equals("/ab/")) {
@@ -204,7 +219,7 @@ public class Worker implements Runnable {
             pw.print(("Content-Length: 0"));
             pw.print("\r\n");
             // Content-Type
-            pw.print(("Content-Type: text/html; charset=utf-8"));
+            pw.print(("Content-Type: " + contentType + "\r\n"));
             pw.print("\r\n");
             pw.flush();
         } else if (resource.equals("/304")) {
@@ -223,7 +238,7 @@ public class Worker implements Runnable {
             pw.print(("Content-Length: 0"));
             pw.print("\r\n");
             // Content-Type
-            pw.print(("Content-Type: text/html; charset=utf-8"));
+            pw.print(("Content-Type: " + contentType + "\r\n"));
             pw.print("\r\n");
             pw.flush();
         } else {
@@ -242,7 +257,7 @@ public class Worker implements Runnable {
             pw.print(("Content-Length: 0"));
             pw.print("\r\n");
             // Content-Type
-            pw.print(("Content-Type: text/html; charset=utf-8"));
+            pw.print(("Content-Type: " + contentType + "\r\n"));
             pw.print("\r\n");
             pw.flush();
         }
@@ -251,7 +266,6 @@ public class Worker implements Runnable {
     private static void headRequest(Socket client, String resource) throws IOException {
         System.out.println("HEAD request resource from: " + resource);
         PrintWriter pw = new PrintWriter(client.getOutputStream());
-        BufferedOutputStream bw = new BufferedOutputStream(client.getOutputStream());
         LocalDateTime dateTime = LocalDateTime.now();
 
         if (resource.equals("/")) {

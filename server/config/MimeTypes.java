@@ -1,16 +1,17 @@
 package server.config;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class MimeTypes {
-    private static Hashtable<String, String[]> mimeTypesTable;
+    private static ConcurrentHashMap<String[], String> mimeTypesMap;
 
-    public MimeTypes(Hashtable<String, String[]> mimeTypes) {
-        mimeTypesTable = mimeTypes;
+    public MimeTypes(ConcurrentHashMap<String[], String> mimeTypes) {
+        mimeTypesMap = mimeTypes;
     }
 
-    public Hashtable<String, String[]> getTable() {
-        return mimeTypesTable;
+    public ConcurrentHashMap<String[], String> getMap() {
+        return mimeTypesMap;
     }
 
 }

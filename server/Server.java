@@ -12,10 +12,10 @@ public class Server {
     public Server() {
         // * Instantiate new Configuration object and sets config private members with conf file paths
         Configuration config = new Configuration("conf/httpd.conf", "conf/mime.types");
-        // * Parse httpd.conf file into hash table
+        // * Parse httpd.conf file into hash Map
         config.readHttpdConfig();
-        // * Get the "Listen" directive from the hash table member as the listening port
-        port = Integer.parseInt(config.getConfigTable().get("Listen"));
+        // * Get the "Listen" directive from the hash Map member as the listening port
+        port = Integer.parseInt(config.getConfigMap().get("Listen"));
     }
 
     public void start() throws Exception {

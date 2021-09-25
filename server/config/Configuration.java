@@ -3,12 +3,13 @@ package server.config;
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Configuration {
     final String httpdConfFile;
     final String mimeTypesFile;
-    static Hashtable<String, String> configTable;
-    static Hashtable<String, String[]> mimeTypesTable;
+    static ConcurrentHashMap<String, String> configMap;
+    static ConcurrentHashMap<String[], String> mimeTypesMap;
  
     public Configuration(String httpdConfFile, String mimeTypesFile) {
         System.out.println("⏳ Reading httpd.conf...");
@@ -18,7 +19,7 @@ public class Configuration {
 
     public void readHttpdConfig() {
         try {
-            configTable = new Hashtable<>();
+            configMap = new ConcurrentHashMap<>();
             FileInputStream fis = new FileInputStream(httpdConfFile);
             DataInputStream dis = new DataInputStream(fis);
             BufferedReader br = new BufferedReader(new InputStreamReader(dis));
@@ -30,20 +31,20 @@ public class Configuration {
                 // if(!line.startsWith("#") && !line.isBlank() && line.contains("lias")) {
                 //     directive = line.split(" ", 3);
                 //     String alias[] = {directive[1], directive[2]};
-                //     configTable.put(directive[0], alias);
+                //     configMap.put(directive[0], alias);
                 // }
                 if(!line.startsWith("#") && !line.isBlank()) {
                     directive = line.split(" ", 3);
                     if(directive[0].contains("Alias")) {
                         String aliasDir = directive[0].concat(" ").concat(directive[1]);
                         String path = directive[2].replaceAll("^\"+|\"+$", "");
-                        configTable.put(aliasDir.toString().trim(), path.trim());  
-                        // System.out.println(configTable.get(aliasDir));
+                        configMap.put(aliasDir.toString().trim(), path.trim());  
+                        // System.out.println(configMap.get(aliasDir));
   
                     } else {
                         String path = directive[1].replaceAll("^\"+|\"+$", "");
-                        configTable.put(directive[0], path);
-                        // System.out.println(configTable.get(directive[0]));
+                        configMap.put(directive[0], path);
+                        // System.out.println(configMap.get(directive[0]));
                     }
 
                     sb.append(line + "\r\n");
@@ -63,7 +64,7 @@ public class Configuration {
         try {
             System.out.println("⏳ Reading mime.types...");
             String[] fileExtension;
-            mimeTypesTable = new Hashtable<>();
+            mimeTypesMap = new ConcurrentHashMap<>();
             FileInputStream fis = new FileInputStream(mimeTypesFile);
             DataInputStream dis = new DataInputStream(fis);
             BufferedReader br = new BufferedReader(new InputStreamReader(dis));
@@ -75,9 +76,9 @@ public class Configuration {
                     mimeType = line.split("\\s+", 2);                    
                     if(mimeType.length == 2) {                        
                         fileExtension = mimeType[1].trim().split("\\s+");
-                        // System.out.println(mimeTypesTable.size() + " : " + mimeType[0] + " " + mimeType[1]);
-                        mimeTypesTable.put(mimeType[0], fileExtension);
-                        // System.out.println(Arrays.toString(mimeTypesTable.get(mimeType[0])));
+                        // System.out.println(mimeTypesMap.size() + " : " + mimeType[0] + " " + mimeType[1]);
+                        mimeTypesMap.put(fileExtension, mimeType[0]);
+                        // System.out.println(Arrays.toString(mimeTypesMap.get(mimeType[0])));
                         sb.append(line + "\r\n");
                     } 
                 }
@@ -92,15 +93,15 @@ public class Configuration {
         }
     }
 
-    public Hashtable<String, String> getConfigTable() {
-        return configTable;
+    public ConcurrentHashMap<String, String> getConfigMap() {
+        return configMap;
     }
 
-    public Hashtable<String, String[]> getMimeTypesTable() {
-        return mimeTypesTable;
+    public ConcurrentHashMap<String[], String> getMimeTypesMap() {
+        return mimeTypesMap;
     }
 
     public String getDirective(String directive) {
-        return configTable.get(directive);
+        return configMap.get(directive);
     }
 }
