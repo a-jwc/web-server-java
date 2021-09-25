@@ -11,9 +11,12 @@ public class Configuration {
     static Hashtable<String, String[]> mimeTypesTable;
  
     public Configuration(String httpdConfFile, String mimeTypesFile) {
-        System.out.println("⏳ Reading httpd.conf and mime.types...");
+        System.out.println("⏳ Reading httpd.conf...");
         this.httpdConfFile = httpdConfFile;
         this.mimeTypesFile = mimeTypesFile;
+    }
+
+    public void readHttpdConfig() {
         try {
             configTable = new Hashtable<>();
             FileInputStream fis = new FileInputStream(httpdConfFile);
@@ -33,27 +36,32 @@ public class Configuration {
                     directive = line.split(" ", 3);
                     if(directive[0].contains("Alias")) {
                         String aliasDir = directive[0].concat(" ").concat(directive[1]);
-                        configTable.put(aliasDir.toString().trim(), directive[2].trim());  
-                        System.out.println(configTable.get(aliasDir));
+                        String path = directive[2].replaceAll("^\"+|\"+$", "");
+                        configTable.put(aliasDir.toString().trim(), path.trim());  
+                        // System.out.println(configTable.get(aliasDir));
   
                     } else {
-                        configTable.put(directive[0], directive[1]);
-                        System.out.println(configTable.get(directive[0]));
+                        String path = directive[1].replaceAll("^\"+|\"+$", "");
+                        configTable.put(directive[0], path);
+                        // System.out.println(configTable.get(directive[0]));
                     }
 
                     sb.append(line + "\r\n");
                 } 
             }
-            // print(configTable)
             br.close();
             dis.close();
             fis.close();
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
-            System.out.println("⏳ Moving to mime.types...");
+            System.out.println("⌛ ✨ Successfully read in " + httpdConfFile + " ✨\n");
         }
+    }
+
+    public void readMimeTypes() {
         try {
+            System.out.println("⏳ Reading mime.types...");
             String[] fileExtension;
             mimeTypesTable = new Hashtable<>();
             FileInputStream fis = new FileInputStream(mimeTypesFile);
@@ -72,10 +80,6 @@ public class Configuration {
                         // System.out.println(Arrays.toString(mimeTypesTable.get(mimeType[0])));
                         sb.append(line + "\r\n");
                     } 
-                    // else {
-                    //     fileExtension = new String[0];
-                    //     mimeTypesTable.put(mimeType[0], fileExtension);
-                    // }
                 }
             }
             br.close();
@@ -84,7 +88,7 @@ public class Configuration {
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
-            System.out.println("⌛ ✨Successfully read in " + httpdConfFile + " and " + mimeTypesFile + "✨\n");
+            System.out.println("⌛ ✨ Successfully read in " + mimeTypesFile + " ✨\n");
         }
     }
     public static void main(String[] args) throws IOException{
@@ -99,40 +103,6 @@ public class Configuration {
         return mimeTypesTable;
     }
 
-    private void checkDirectives() {
-        for(String i : configTable.keySet()) {
-            getDirective(i);
-        }
-        // switch(configTable) {
-        //     case "Listen": {
-        //         getDirective(directive[0]);
-        //         break;
-        //     }
-        //     case "DocumentRoot": {
-
-        //         break;
-        //     }
-        //     case "LogFile": {
-
-        //         break;
-        //     }
-        //     case "ScriptAlias": {
-
-        //         break;
-        //     }
-        //     case "Alias": {
-
-        //         break;
-        //     }
-        //     default: {
-        //         System.out.println("y u here");
-        //     }
-        // }
-    }
-
-    private String getServerRoot() {
-        return configTable.get("Listen");
-    }
     public String getDirective(String directive) {
         return configTable.get(directive);
     }

@@ -11,17 +11,12 @@ public class Server {
     private static final String server = "Chau & Satumba";
     private static int port;
     private Hashtable<String, String> configMap;
-    // private Hashtable<String, String[]> mimeTypesMap;
-    // private static String documentRoot;
-    // private static String logFile;
-    // private static String scriptAlias;
-    // private static String alias;
 
     public Server() {
         Configuration config = new Configuration("conf/httpd.conf", "conf/mime.types");
+        config.readHttpdConfig();
         this.configMap = config.getConfigTable();
-        // this.mimeTypesMap = config.getMimeTypesMap();
-        port = Integer.parseInt(configMap.get("Listen".toString()));
+        port = Integer.parseInt(configMap.get("Listen"));
     }
 
     public static void main(String[] args) throws Exception {

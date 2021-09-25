@@ -13,12 +13,14 @@ public class Worker implements Runnable {
     final static String CRLF = "\r\n";
     private static String server = "Chau & Satumba";
     protected Socket socket;    
-    private static Hashtable<String, String> configTable;
+    // private static Hashtable<String, String> configTable;
     private static Hashtable<String, String[]> mimeTypesMap;
     private static String documentRoot;
     private static String logFile;
     private static String scriptAlias;
-    private static String alias;
+    private static String abAlias;
+    private static String tracielyAlias;
+    private static String directoryIndex;
     private static HttpdConfig httpdConfig;
 
     public Worker(Socket socket) {
@@ -73,22 +75,35 @@ public class Worker implements Runnable {
 
     private static synchronized void checkRequest(Socket client, StringBuilder req) throws IOException {
         String reqArr[] = req.toString().split("\\r?\\n", 10);
-        // Get the first line of the request; Get "resource" and "method" from first
-        // line
+        // Get the first line of the request; Get "resource" and "method" from first line
         String firstLine = reqArr[0];
-        System.out.println(firstLine);
+        // System.out.println(firstLine);
         // String resource = firstLine.split(" ")[1];
         // String method = firstLine.split(" ")[0];
         String requestLine[] = firstLine.split(" ", 0);
         String method = requestLine[0];
         String resource = requestLine[1];
         System.out.println("");
-        httpdConfig.printAll();
+        // httpdConfig.printAll();
         // String fifthLine = reqArr[4];
         String fifthLine = "null";
         switch (method) {
             case "GET":
                 getRequest(client, resource);
+                break;
+            case "HEAD":
+                headRequest(client, resource);
+                break;
+            case "POST":
+                String sixthLine = reqArr[5];
+                postRequest(client, resource, fifthLine, sixthLine);
+                break;
+            case "PUT":
+                String sixthLines = reqArr[5];
+                putRequest(client, resource, fifthLine, sixthLines);
+                break;
+            case "DELETE":
+                deleteRequest(client, resource);
                 break;
         }
     }
@@ -101,16 +116,16 @@ public class Worker implements Runnable {
         BufferedOutputStream bw = new BufferedOutputStream(client.getOutputStream());
         LocalDateTime dateTime = LocalDateTime.now();
 
-        String abAlias[] = configTable.get("Alias").split(" ");
-        System.out.println("abAlias: " + abAlias[0] + " " + abAlias[0]);
-        for(Map.Entry<String, String> e : configTable.entrySet()) {
+        for(Map.Entry<String, String> e : httpdConfig.getTable().entrySet()) {
             System.out.println(e.getKey() + " " + e.getValue());
         }
 
         if (resource.equals("/")) {
             System.out.println("1: " + client);
             // Load the image from the filesystem
-            FileInputStream indexHTML = new FileInputStream(abAlias[1]);
+            documentRoot = httpdConfig.getDocumentRoot("DocumentRoot");
+            directoryIndex = httpdConfig.getDirectoryIndex();
+            FileInputStream indexHTML = new FileInputStream(documentRoot + "/" + directoryIndex);
             OutputStream clientOutput = client.getOutputStream();
             clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
             clientOutput.write(("\r\n").getBytes());
@@ -135,6 +150,34 @@ public class Worker implements Runnable {
             clientOutput.write(("Content-Type: image/jpg; charset=utf-8" + "\r\n").getBytes());
             image.close();
             clientOutput.flush();
+        } else if (resource.equals("/ab/")) {
+            abAlias = httpdConfig.getabAlias("Alias " + resource);
+            // System.out.println("abAlias: " + resource + " " + abAlias);
+            System.out.println("1: " + client);
+            // Load the image from the filesystem
+            FileInputStream indexHTML = new FileInputStream(abAlias);
+            OutputStream clientOutput = client.getOutputStream();
+            clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
+            clientOutput.write(("\r\n").getBytes());
+            clientOutput.write(indexHTML.readAllBytes());
+            indexHTML.close();
+            clientOutput.flush();
+            System.out.println("2: " + client);
+
+        } else if (resource.equals("/~traciely/")) {
+            tracielyAlias = httpdConfig.getabAlias("Alias " + resource);
+            // System.out.println("abAlias: " + resource + " " + abAlias);
+            System.out.println("1: " + client);
+            // Load the image from the filesystem
+            FileInputStream indexHTML = new FileInputStream(tracielyAlias);
+            OutputStream clientOutput = client.getOutputStream();
+            clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
+            clientOutput.write(("\r\n").getBytes());
+            clientOutput.write(indexHTML.readAllBytes());
+            indexHTML.close();
+            clientOutput.flush();
+            System.out.println("2: " + client);
+
         } else if (resource.equals("/400")) {
             // Status code
             pw.print(("HTTP/1.1 400 Not Found\r\n"));
