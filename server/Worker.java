@@ -8,7 +8,7 @@ import java.util.*;
 public class Worker implements Runnable {
     final static String CRLF = "\r\n";
     private static String server = "Chau & Satumba";
-    private Socket socket;
+    protected Socket socket;
 
     public Worker(Socket socket) {
         this.socket = socket;
@@ -23,11 +23,12 @@ public class Worker implements Runnable {
         }
     }
 
-    private void proccessRequest() throws IOException {
+    private void proccessRequest() {
         while (true) {
+            try {
             // System.out.println("Debug: got new message " + client.toString());
             // Read the request - listen to the messages; Bytes -> Chars
-            InputStreamReader isr = new InputStreamReader(socket.getInputStream());
+            InputStreamReader isr = new InputStreamReader(this.socket.getInputStream());
             // Reads text from char-input stream,
             BufferedReader br = new BufferedReader(isr);
             // Read the first request from the client
@@ -42,7 +43,11 @@ public class Worker implements Runnable {
             System.out.println("--REQUEST--");
             System.out.println(request);
 
-            checkRequest(socket, request);
+            
+                checkRequest(socket, request);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             // client.close();
             // }
         }
@@ -82,12 +87,13 @@ public class Worker implements Runnable {
     private static void getRequest(Socket client, String resource) throws IOException {
         // Compare the "resource" to our list of things
         System.out.println("GET request resource from: " + resource);
-        System.out.println(client);
+        // System.out.println(client);
         PrintWriter pw = new PrintWriter(client.getOutputStream());
         BufferedOutputStream bw = new BufferedOutputStream(client.getOutputStream());
         LocalDateTime dateTime = LocalDateTime.now();
 
         if (resource.equals("/")) {
+            System.out.println("1: " + client);
             // Load the image from the filesystem
             FileInputStream indexHTML = new FileInputStream("public_html/ab1/ab2/index.html");
             OutputStream clientOutput = client.getOutputStream();
@@ -96,6 +102,8 @@ public class Worker implements Runnable {
             clientOutput.write(indexHTML.readAllBytes());
             indexHTML.close();
             clientOutput.flush();
+            System.out.println("2: " + client);
+
         } else if (resource.equals("/image")) {
             // Load the image from the filesystem
             FileInputStream image = new FileInputStream("public_html/images/sushi.jpg");

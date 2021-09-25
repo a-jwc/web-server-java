@@ -14,7 +14,7 @@ public class WebServer {
     Server server = new Server();
     try {
       server.start();
-    } catch (IOException e) {
+    } catch (Exception e) {
       e.printStackTrace();
     }
   }
