@@ -4,6 +4,7 @@ import java.io.*;
 import java.net.*;
 import java.time.*;
 import java.util.*;
+// * Current "run server" command: javac server/Configuration.java;javac server/Server.java;javac server/Worker.java;javac WebServer.java;java WebServer
 
 public class Worker implements Runnable {
     final static String CRLF = "\r\n";
@@ -23,27 +24,30 @@ public class Worker implements Runnable {
         }
     }
 
-    private void proccessRequest() {
+    private synchronized void proccessRequest() {
         while (true) {
             try {
-            // System.out.println("Debug: got new message " + client.toString());
-            // Read the request - listen to the messages; Bytes -> Chars
-            InputStreamReader isr = new InputStreamReader(this.socket.getInputStream());
-            // Reads text from char-input stream,
-            BufferedReader br = new BufferedReader(isr);
-            // Read the first request from the client
-            StringBuilder request = new StringBuilder();            
-            String line;
-            line = br.readLine();
-            while (!line.isBlank()) {
-                request.append(line + "\r\n");
+                // System.out.println("Debug: got new message " + client.toString());
+                // Read the request - listen to the messages; Bytes -> Chars
+                InputStreamReader isr = new InputStreamReader(this.socket.getInputStream());
+                // Reads text from char-input stream,
+                BufferedReader br = new BufferedReader(isr);
+                // Read the first request from the client
+                StringBuilder request = new StringBuilder();            
+                String line;
                 line = br.readLine();
-            }
+                int count = 0;
+                while (line != null) {
+                    // System.out.println(line);
+                    request.append(line + "\r\n");
+                    line = br.readLine();
+                    System.out.println(request);
+                    count++;
+                }
 
-            System.out.println("--REQUEST--");
-            System.out.println(request);
+                System.out.println("--REQUEST--");
+                System.out.println(request);
 
-            
                 checkRequest(socket, request);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -53,11 +57,12 @@ public class Worker implements Runnable {
         }
     }
 
-    public static void checkRequest(Socket client, StringBuilder req) throws IOException {
+    private static synchronized void checkRequest(Socket client, StringBuilder req) throws IOException {
         String reqArr[] = req.toString().split("\\r?\\n", 10);
         // Get the first line of the request; Get "resource" and "method" from first
         // line
         String firstLine = reqArr[0];
+        System.out.println(firstLine);
         String resource = firstLine.split(" ")[1];
         String method = firstLine.split(" ")[0];
 
@@ -84,7 +89,7 @@ public class Worker implements Runnable {
         }
     }
 
-    private static void getRequest(Socket client, String resource) throws IOException {
+    private static synchronized void getRequest(Socket client, String resource) throws IOException {
         // Compare the "resource" to our list of things
         System.out.println("GET request resource from: " + resource);
         // System.out.println(client);
