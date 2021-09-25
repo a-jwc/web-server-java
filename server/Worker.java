@@ -23,6 +23,7 @@ public class Worker implements Runnable {
     private static HttpdConfig httpdConfig;
     private static MimeTypes mimeTypes;
     private static String contentType;
+    private static int contentLength;
     private static String extension;
 
 
@@ -115,9 +116,18 @@ public class Worker implements Runnable {
     private static synchronized void getRequest(Socket client, String resource) throws IOException {
         // * Compare the "resource" to our list of resources
         System.out.println("GET request resource from: " + resource);
-        // System.out.println(client);
         PrintWriter pw = new PrintWriter(client.getOutputStream());
         LocalDateTime dateTime = LocalDateTime.now();
+
+        // * Get document roots and index from hash Map
+        Worker.documentRoot = httpdConfig.getDocumentRoot("DocumentRoot");
+        Worker.directoryIndex = httpdConfig.getDirectoryIndex();
+        // * Get alias
+        String dirAlias = null;
+        String tempAlias = "Alias " + resource;
+        if(httpdConfig.getMap().containsKey(tempAlias)) {
+            dirAlias = httpdConfig.getMap().get(tempAlias);
+        }
 
         // * Get the content type by looping through the set of keys which are string arrays that contain the extensions 
         if(resource.contains(".")) {
@@ -130,17 +140,19 @@ public class Worker implements Runnable {
                     }
                 }
             }
+        } else {
+            dirAlias = dirAlias + directoryIndex;
         }
         // System.out.println("Content type: " + contentType);                
 
-        // * Get document roots and index from hash Map
-        documentRoot = httpdConfig.getDocumentRoot("DocumentRoot");
-        directoryIndex = httpdConfig.getDirectoryIndex();
+        // Worker.scriptAlias = httpdConfig.getScriptAlias("scriptAlias");
+
         // System.out.println("mimetypes: " + mimeTypes.getMap().entrySet());
         System.out.println("Socket object: " + client);
         if (resource.equals("/")) {
             // Load the image from the filesystem
-            FileInputStream indexHTML = new FileInputStream(documentRoot + "/" + directoryIndex);
+            String defaultIndex = documentRoot + "/" + directoryIndex;
+            FileInputStream indexHTML = new FileInputStream(defaultIndex);
             OutputStream clientOutput = client.getOutputStream();
             clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
             clientOutput.write(("\r\n").getBytes());
@@ -166,9 +178,9 @@ public class Worker implements Runnable {
             image.close();
             clientOutput.flush();
         } else if (resource.equals("/ab/")) {
-            abAlias = httpdConfig.getabAlias("Alias " + resource);
+            // abAlias = httpdConfig.getabAlias("Alias " + resource);
             System.out.println("1: " + client);
-            FileInputStream indexHTML = new FileInputStream(abAlias);
+            FileInputStream indexHTML = new FileInputStream(dirAlias);
             OutputStream clientOutput = client.getOutputStream();
             clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
             clientOutput.write(("\r\n").getBytes());
@@ -176,8 +188,8 @@ public class Worker implements Runnable {
             indexHTML.close();
             clientOutput.flush();
         } else if (resource.equals("/~traciely/")) {
-            tracielyAlias = httpdConfig.getabAlias("Alias " + resource);
-            FileInputStream indexHTML = new FileInputStream(tracielyAlias);
+            // tracielyAlias = httpdConfig.getabAlias("Alias " + resource);
+            FileInputStream indexHTML = new FileInputStream(dirAlias);
             OutputStream clientOutput = client.getOutputStream();
             clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
             clientOutput.write(("\r\n").getBytes());
