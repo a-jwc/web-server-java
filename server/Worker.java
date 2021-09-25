@@ -13,7 +13,7 @@ import server.config.MimeTypes;
 public class Worker implements Runnable {
     final static String CRLF = "\r\n";
     private static String server = "Chau & Satumba";
-    protected Socket socket;    
+    protected Socket socket;
     private static String documentRoot;
     private static String logFile;
     private static String scriptAlias;
@@ -52,7 +52,7 @@ public class Worker implements Runnable {
                 // Reads text from char-input stream,
                 BufferedReader br = new BufferedReader(isr);
                 // Read the first request from the client
-                StringBuilder request = new StringBuilder();            
+                StringBuilder request = new StringBuilder();
                 String line;
                 line = br.readLine();
                 int count = 0;
@@ -75,9 +75,11 @@ public class Worker implements Runnable {
 
     private static synchronized void checkRequest(Socket client, StringBuilder req) throws IOException {
         String reqArr[] = req.toString().split("\\r?\\n", 10);
-        // * Get the first line of the request; Get "resource" and "method" from first line
+        // * Get the first line of the request; Get "resource" and "method" from first
+        // line
         String firstLine = reqArr[0];
         // System.out.println(firstLine);
+        // * Split by whitespace for as many elements are in the first line
         String requestLine[] = firstLine.split(" ", 0);
         String method = requestLine[0];
         String resource = requestLine[1];
@@ -116,7 +118,7 @@ public class Worker implements Runnable {
 
         // * Print out httpdConfigTable values (paths)
         // for(Map.Entry<String, String> e : httpdConfig.getTable().entrySet()) {
-        //     System.out.println(e.getKey() + " " + e.getValue());
+        // System.out.println(e.getKey() + " " + e.getValue());
         // }
         System.out.println("Socket object: " + client);
         if (resource.equals("/")) {

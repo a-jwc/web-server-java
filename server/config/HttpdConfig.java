@@ -3,6 +3,7 @@ package server.config;
 import java.util.*;
 
 public class HttpdConfig {
+    // * Hash table to hold directives, aliases and paths
     private static Hashtable<String,String> httpdConfigTable;
 
     public HttpdConfig(Hashtable<String,String> config) {

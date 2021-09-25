@@ -91,9 +91,6 @@ public class Configuration {
             System.out.println("⌛ Successfully read in " + mimeTypesFile + "\n");
         }
     }
-    public static void main(String[] args) throws IOException{
-
-    }
 
     public Hashtable<String, String> getConfigTable() {
         return configTable;
