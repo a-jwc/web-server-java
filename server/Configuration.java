@@ -7,15 +7,15 @@ import java.util.*;
 public class Configuration {
     final String httpdConfFile;
     final String mimeTypesFile;
-    static HashMap<String, String> configMap;
-    static HashMap<String, String[]> mimeTypesMap;
+    static Hashtable<String, String> configMap;
+    static Hashtable<String, String[]> mimeTypesMap;
  
     public Configuration(String httpdConfFile, String mimeTypesFile) {
         System.out.println("⏳ Reading httpd.conf and mime.types...");
         this.httpdConfFile = httpdConfFile;
         this.mimeTypesFile = mimeTypesFile;
         try {
-            configMap = new HashMap<>();
+            configMap = new Hashtable<>();
             FileInputStream fis = new FileInputStream(httpdConfFile);
             DataInputStream dis = new DataInputStream(fis);
             BufferedReader br = new BufferedReader(new InputStreamReader(dis));
@@ -48,7 +48,7 @@ public class Configuration {
         }
         try {
             String[] fileExtension;
-            mimeTypesMap = new HashMap<>();
+            mimeTypesMap = new Hashtable<>();
             FileInputStream fis = new FileInputStream(mimeTypesFile);
             DataInputStream dis = new DataInputStream(fis);
             BufferedReader br = new BufferedReader(new InputStreamReader(dis));
@@ -84,11 +84,11 @@ public class Configuration {
 
     }
 
-    public HashMap<String, String> getConfigMap() {
+    public Hashtable<String, String> getConfigMap() {
         return configMap;
     }
 
-    public HashMap<String, String[]> getMimeTypesMap() {
+    public Hashtable<String, String[]> getMimeTypesMap() {
         return mimeTypesMap;
     }
 

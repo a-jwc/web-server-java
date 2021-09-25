@@ -9,10 +9,20 @@ import java.util.*;
 public class Worker implements Runnable {
     final static String CRLF = "\r\n";
     private static String server = "Chau & Satumba";
-    protected Socket socket;
+    protected Socket socket;    
+    private static Hashtable<String, String> configMap;
+    private static Hashtable<String, String[]> mimeTypesMap;
+    private static String documentRoot;
+    private static String logFile;
+    private static String scriptAlias;
+    private static String alias;
+
 
     public Worker(Socket socket) {
         this.socket = socket;
+        Configuration config = new Configuration("conf/httpd.conf", "conf/mime.types");
+        this.configMap = config.getConfigMap();
+        this.mimeTypesMap = config.getMimeTypesMap();
     }
 
     @Override
@@ -37,11 +47,11 @@ public class Worker implements Runnable {
                 String line;
                 line = br.readLine();
                 int count = 0;
-                while (line != null) {
+                while (!line.isEmpty()) {
                     // System.out.println(line);
                     request.append(line + "\r\n");
                     line = br.readLine();
-                    System.out.println(request);
+                    // System.out.println(request);
                     count++;
                 }
 
@@ -63,11 +73,14 @@ public class Worker implements Runnable {
         // line
         String firstLine = reqArr[0];
         System.out.println(firstLine);
-        String resource = firstLine.split(" ")[1];
-        String method = firstLine.split(" ")[0];
+        // String resource = firstLine.split(" ")[1];
+        // String method = firstLine.split(" ")[0];
+        String requestLine[] = firstLine.split(" ", 0);
+        String method = requestLine[0];
+        String resource = requestLine[1];
 
-        String fifthLine = reqArr[4];
-
+        // String fifthLine = reqArr[4];
+        String fifthLine = "null";
         switch (method) {
             case "GET":
                 getRequest(client, resource);
@@ -97,10 +110,16 @@ public class Worker implements Runnable {
         BufferedOutputStream bw = new BufferedOutputStream(client.getOutputStream());
         LocalDateTime dateTime = LocalDateTime.now();
 
+        String abAlias[] = configMap.get("Alias").split(" ");
+        System.out.println("abAlias: " + abAlias[0] + " " + abAlias[0]);
+        for(Map.Entry<String, String> e : configMap.entrySet()) {
+            System.out.println(e.getKey() + " " + e.getValue());
+        }
+
         if (resource.equals("/")) {
             System.out.println("1: " + client);
             // Load the image from the filesystem
-            FileInputStream indexHTML = new FileInputStream("public_html/ab1/ab2/index.html");
+            FileInputStream indexHTML = new FileInputStream(abAlias[1]);
             OutputStream clientOutput = client.getOutputStream();
             clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
             clientOutput.write(("\r\n").getBytes());
@@ -111,7 +130,7 @@ public class Worker implements Runnable {
 
         } else if (resource.equals("/image")) {
             // Load the image from the filesystem
-            FileInputStream image = new FileInputStream("public_html/images/sushi.jpg");
+            FileInputStream image = new FileInputStream("./public_html/images/sushi.jpg");
             OutputStream clientOutput = client.getOutputStream();
             clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
             clientOutput.write(("\r\n").getBytes());
@@ -212,7 +231,7 @@ public class Worker implements Runnable {
 
         if (resource.equals("/")) {
             // Load the image from the filesystem
-            FileInputStream indexHTML = new FileInputStream("public_html/ab1/ab2/index.html");
+            FileInputStream indexHTML = new FileInputStream("./public_html/ab1/ab2/index.html");
             OutputStream clientOutput = client.getOutputStream();
             clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
             clientOutput.write(("Date: " + dateTime.toString() + "\r\n").getBytes());
