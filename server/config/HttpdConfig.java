@@ -33,4 +33,8 @@ public class HttpdConfig {
     public String getDirectoryIndex() {
         return "index.html";
     }
+
+    public String getScriptAlias(String scriptAlias) {
+        return httpdConfigTable.get(scriptAlias);
+    }
 }

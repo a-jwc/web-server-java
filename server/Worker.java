@@ -8,13 +8,12 @@ import java.util.*;
 
 import server.config.Configuration;
 import server.config.HttpdConfig;
+import server.config.MimeTypes;
 
 public class Worker implements Runnable {
     final static String CRLF = "\r\n";
     private static String server = "Chau & Satumba";
     protected Socket socket;    
-    // private static Hashtable<String, String> configTable;
-    private static Hashtable<String, String[]> mimeTypesMap;
     private static String documentRoot;
     private static String logFile;
     private static String scriptAlias;
@@ -22,13 +21,13 @@ public class Worker implements Runnable {
     private static String tracielyAlias;
     private static String directoryIndex;
     private static HttpdConfig httpdConfig;
+    private static MimeTypes mimeTypes;
 
     public Worker(Socket socket) {
         this.socket = socket;
         Configuration config = new Configuration("conf/httpd.conf", "conf/mime.types");
         this.httpdConfig = new HttpdConfig(config.getConfigTable());
-        // this.configTable = config.getConfigTable();
-        // this.mimeTypesMap = config.getMimeTypesMap();
+        this.mimeTypes = new MimeTypes(config.getMimeTypesTable());
     }
 
     @Override
@@ -54,7 +53,6 @@ public class Worker implements Runnable {
                 line = br.readLine();
                 int count = 0;
                 while (!line.isEmpty()) {
-                    // System.out.println(line);
                     request.append(line + "\r\n");
                     line = br.readLine();
                     // System.out.println(request);
@@ -68,8 +66,6 @@ public class Worker implements Runnable {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            // client.close();
-            // }
         }
     }
 
@@ -78,8 +74,6 @@ public class Worker implements Runnable {
         // Get the first line of the request; Get "resource" and "method" from first line
         String firstLine = reqArr[0];
         // System.out.println(firstLine);
-        // String resource = firstLine.split(" ")[1];
-        // String method = firstLine.split(" ")[0];
         String requestLine[] = firstLine.split(" ", 0);
         String method = requestLine[0];
         String resource = requestLine[1];
