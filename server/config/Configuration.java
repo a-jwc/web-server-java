@@ -55,7 +55,7 @@ public class Configuration {
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
-            System.out.println("⌛ ✨ Successfully read in " + httpdConfFile + " ✨\n");
+            System.out.println("⌛ Successfully read in " + httpdConfFile + "\n");
         }
     }
 
@@ -88,7 +88,7 @@ public class Configuration {
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
-            System.out.println("⌛ ✨ Successfully read in " + mimeTypesFile + " ✨\n");
+            System.out.println("⌛ Successfully read in " + mimeTypesFile + "\n");
         }
     }
     public static void main(String[] args) throws IOException{

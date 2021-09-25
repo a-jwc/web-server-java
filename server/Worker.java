@@ -25,14 +25,18 @@ public class Worker implements Runnable {
 
     public Worker(Socket socket) {
         this.socket = socket;
+        // * Instantiate new Configuration object
         Configuration config = new Configuration("conf/httpd.conf", "conf/mime.types");
-        this.httpdConfig = new HttpdConfig(config.getConfigTable());
-        this.mimeTypes = new MimeTypes(config.getMimeTypesTable());
+        // * Local access to the directives via httpdConfig object
+        Worker.httpdConfig = new HttpdConfig(config.getConfigTable());
+        // * Local access to the mime types via mimeTypes object
+        Worker.mimeTypes = new MimeTypes(config.getMimeTypesTable());
     }
 
     @Override
     public void run() {
         try {
+            System.out.println("🎈 Thread-" + Thread.currentThread().getName() + " running.");
             proccessRequest();
         } catch (Exception e) {
             e.printStackTrace();
@@ -43,7 +47,7 @@ public class Worker implements Runnable {
         while (true) {
             try {
                 // System.out.println("Debug: got new message " + client.toString());
-                // Read the request - listen to the messages; Bytes -> Chars
+                // * Read the request - listen to the messages; Bytes -> Chars
                 InputStreamReader isr = new InputStreamReader(this.socket.getInputStream());
                 // Reads text from char-input stream,
                 BufferedReader br = new BufferedReader(isr);
@@ -71,13 +75,13 @@ public class Worker implements Runnable {
 
     private static synchronized void checkRequest(Socket client, StringBuilder req) throws IOException {
         String reqArr[] = req.toString().split("\\r?\\n", 10);
-        // Get the first line of the request; Get "resource" and "method" from first line
+        // * Get the first line of the request; Get "resource" and "method" from first line
         String firstLine = reqArr[0];
         // System.out.println(firstLine);
         String requestLine[] = firstLine.split(" ", 0);
         String method = requestLine[0];
         String resource = requestLine[1];
-        System.out.println("");
+        // System.out.println("");
         // httpdConfig.printAll();
         // String fifthLine = reqArr[4];
         String fifthLine = "null";
@@ -103,19 +107,19 @@ public class Worker implements Runnable {
     }
 
     private static synchronized void getRequest(Socket client, String resource) throws IOException {
-        // Compare the "resource" to our list of things
+        // * Compare the "resource" to our list of resources
         System.out.println("GET request resource from: " + resource);
         // System.out.println(client);
         PrintWriter pw = new PrintWriter(client.getOutputStream());
         BufferedOutputStream bw = new BufferedOutputStream(client.getOutputStream());
         LocalDateTime dateTime = LocalDateTime.now();
 
-        for(Map.Entry<String, String> e : httpdConfig.getTable().entrySet()) {
-            System.out.println(e.getKey() + " " + e.getValue());
-        }
-
+        // * Print out httpdConfigTable values (paths)
+        // for(Map.Entry<String, String> e : httpdConfig.getTable().entrySet()) {
+        //     System.out.println(e.getKey() + " " + e.getValue());
+        // }
+        System.out.println("Socket object: " + client);
         if (resource.equals("/")) {
-            System.out.println("1: " + client);
             // Load the image from the filesystem
             documentRoot = httpdConfig.getDocumentRoot("DocumentRoot");
             directoryIndex = httpdConfig.getDirectoryIndex();
@@ -126,7 +130,7 @@ public class Worker implements Runnable {
             clientOutput.write(indexHTML.readAllBytes());
             indexHTML.close();
             clientOutput.flush();
-            System.out.println("2: " + client);
+            // System.out.println("2: " + client);
 
         } else if (resource.equals("/image")) {
             // Load the image from the filesystem
@@ -146,9 +150,7 @@ public class Worker implements Runnable {
             clientOutput.flush();
         } else if (resource.equals("/ab/")) {
             abAlias = httpdConfig.getabAlias("Alias " + resource);
-            // System.out.println("abAlias: " + resource + " " + abAlias);
             System.out.println("1: " + client);
-            // Load the image from the filesystem
             FileInputStream indexHTML = new FileInputStream(abAlias);
             OutputStream clientOutput = client.getOutputStream();
             clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
@@ -156,13 +158,8 @@ public class Worker implements Runnable {
             clientOutput.write(indexHTML.readAllBytes());
             indexHTML.close();
             clientOutput.flush();
-            System.out.println("2: " + client);
-
         } else if (resource.equals("/~traciely/")) {
             tracielyAlias = httpdConfig.getabAlias("Alias " + resource);
-            // System.out.println("abAlias: " + resource + " " + abAlias);
-            System.out.println("1: " + client);
-            // Load the image from the filesystem
             FileInputStream indexHTML = new FileInputStream(tracielyAlias);
             OutputStream clientOutput = client.getOutputStream();
             clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
@@ -170,8 +167,6 @@ public class Worker implements Runnable {
             clientOutput.write(indexHTML.readAllBytes());
             indexHTML.close();
             clientOutput.flush();
-            System.out.println("2: " + client);
-
         } else if (resource.equals("/400")) {
             // Status code
             pw.print(("HTTP/1.1 400 Not Found\r\n"));
