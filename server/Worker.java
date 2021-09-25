@@ -4,14 +4,29 @@ import java.io.*;
 import java.net.*;
 import java.time.*;
 import java.util.*;
+// * Current "run server" command: javac server/Configuration.java;javac server/Server.java;javac server/Worker.java;javac WebServer.java;java WebServer
+
+import server.config.Configuration;
+import server.config.HttpdConfig;
 
 public class Worker implements Runnable {
     final static String CRLF = "\r\n";
     private static String server = "Chau & Satumba";
-    protected Socket socket;
+    protected Socket socket;    
+    private static Hashtable<String, String> configTable;
+    private static Hashtable<String, String[]> mimeTypesMap;
+    private static String documentRoot;
+    private static String logFile;
+    private static String scriptAlias;
+    private static String alias;
+    private static HttpdConfig httpdConfig;
 
     public Worker(Socket socket) {
         this.socket = socket;
+        Configuration config = new Configuration("conf/httpd.conf", "conf/mime.types");
+        this.httpdConfig = new HttpdConfig(config.getConfigTable());
+        // this.configTable = config.getConfigTable();
+        // this.mimeTypesMap = config.getMimeTypesMap();
     }
 
     @Override
@@ -23,7 +38,7 @@ public class Worker implements Runnable {
         }
     }
 
-    private void proccessRequest() {
+    private synchronized void proccessRequest() {
         while (true) {
             try {
                 // System.out.println("Debug: got new message " + client.toString());
@@ -34,16 +49,19 @@ public class Worker implements Runnable {
                 // Read the first request from the client
                 StringBuilder request = new StringBuilder();            
                 String line;
-                
                 line = br.readLine();
-                while (!line.isBlank()) {
+                int count = 0;
+                while (!line.isEmpty()) {
+                    // System.out.println(line);
                     request.append(line + "\r\n");
                     line = br.readLine();
+                    // System.out.println(request);
+                    count++;
                 }
-                
+
                 System.out.println("--REQUEST--");
                 System.out.println(request);
-                
+
                 checkRequest(socket, request);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -53,16 +71,21 @@ public class Worker implements Runnable {
         }
     }
 
-    public static void checkRequest(Socket client, StringBuilder req) throws IOException {
+    private static synchronized void checkRequest(Socket client, StringBuilder req) throws IOException {
         String reqArr[] = req.toString().split("\\r?\\n", 10);
         // Get the first line of the request; Get "resource" and "method" from first
         // line
         String firstLine = reqArr[0];
-        String resource = firstLine.split(" ")[1];
-        String method = firstLine.split(" ")[0];
-
-        String fifthLine = reqArr[4];
-
+        System.out.println(firstLine);
+        // String resource = firstLine.split(" ")[1];
+        // String method = firstLine.split(" ")[0];
+        String requestLine[] = firstLine.split(" ", 0);
+        String method = requestLine[0];
+        String resource = requestLine[1];
+        System.out.println("");
+        httpdConfig.printAll();
+        // String fifthLine = reqArr[4];
+        String fifthLine = "null";
         switch (method) {
             case "GET":
                 getRequest(client, resource);
@@ -70,7 +93,7 @@ public class Worker implements Runnable {
         }
     }
 
-    private static void getRequest(Socket client, String resource) throws IOException {
+    private static synchronized void getRequest(Socket client, String resource) throws IOException {
         // Compare the "resource" to our list of things
         System.out.println("GET request resource from: " + resource);
         // System.out.println(client);
@@ -78,10 +101,16 @@ public class Worker implements Runnable {
         BufferedOutputStream bw = new BufferedOutputStream(client.getOutputStream());
         LocalDateTime dateTime = LocalDateTime.now();
 
+        String abAlias[] = configTable.get("Alias").split(" ");
+        System.out.println("abAlias: " + abAlias[0] + " " + abAlias[0]);
+        for(Map.Entry<String, String> e : configTable.entrySet()) {
+            System.out.println(e.getKey() + " " + e.getValue());
+        }
+
         if (resource.equals("/")) {
             System.out.println("1: " + client);
             // Load the image from the filesystem
-            FileInputStream indexHTML = new FileInputStream("public_html/ab1/ab2/index.html");
+            FileInputStream indexHTML = new FileInputStream(abAlias[1]);
             OutputStream clientOutput = client.getOutputStream();
             clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
             clientOutput.write(("\r\n").getBytes());
@@ -92,7 +121,7 @@ public class Worker implements Runnable {
 
         } else if (resource.equals("/image")) {
             // Load the image from the filesystem
-            FileInputStream image = new FileInputStream("public_html/images/sushi.jpg");
+            FileInputStream image = new FileInputStream("./public_html/images/sushi.jpg");
             OutputStream clientOutput = client.getOutputStream();
             clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
             clientOutput.write(("\r\n").getBytes());
@@ -183,5 +212,172 @@ public class Worker implements Runnable {
             pw.print("\r\n");
             pw.flush();
         }
+    }
+
+    private static void headRequest(Socket client, String resource) throws IOException {
+        System.out.println("HEAD request resource from: " + resource);
+        PrintWriter pw = new PrintWriter(client.getOutputStream());
+        BufferedOutputStream bw = new BufferedOutputStream(client.getOutputStream());
+        LocalDateTime dateTime = LocalDateTime.now();
+
+        if (resource.equals("/")) {
+            // Load the image from the filesystem
+            FileInputStream indexHTML = new FileInputStream("./public_html/ab1/ab2/index.html");
+            OutputStream clientOutput = client.getOutputStream();
+            clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
+            clientOutput.write(("Date: " + dateTime.toString() + "\r\n").getBytes());
+            // Server
+            clientOutput.write(("Server: " + server + "\r\n").getBytes());
+            // Content-Length
+            clientOutput.write(("Content-Length: 0" + "\r\n").getBytes());
+            // Content-Type
+            clientOutput.write(("Content-Type: text/html; charset=utf-8" + "\r\n").getBytes());
+            clientOutput.write(indexHTML.readAllBytes());
+            indexHTML.close();
+            clientOutput.flush();
+        } else if (resource.equals("/400")) {
+            // Status code
+            pw.print(("HTTP/1.1 400 Bad Request\r\n"));
+            // Date
+            pw.print(("Date: " + dateTime.toString()));
+            pw.print("\r\n");
+            // Server
+            pw.print(("Server: " + server));
+            pw.print("\r\n");
+            // Content-Length
+            pw.print(("Content-Length: 0"));
+            pw.print("\r\n");
+            // Content-Type
+            pw.print(("Content-Type: text/html; charset=utf-8"));
+            pw.print("\r\n");
+            pw.flush();
+        } else if (resource.equals("/500")) {
+            // Status code
+            pw.print(("HTTP/1.1 500 Internal Server Error\r\n"));
+            // Date
+            pw.print(("Date: " + dateTime.toString()));
+            pw.print("\r\n");
+            // Server
+            pw.print(("Server: " + server));
+            pw.print("\r\n");
+            // Content-Length
+            pw.print(("Content-Length: 0"));
+            pw.print("\r\n");
+            // Content-Type
+            pw.print(("Content-Type: text/html; charset=utf-8"));
+            pw.print("\r\n");
+            pw.flush();
+        } else {
+            // Status code
+            pw.print(("HTTP/1.1 404 Not Found\r\n"));
+            // Date
+            pw.print(("Date: " + dateTime.toString()));
+            pw.print("\r\n");
+            // Server
+            pw.print(("Server: " + server));
+            pw.print("\r\n");
+            // Content-Length
+            pw.print(("Content-Length: 0"));
+            pw.print("\r\n");
+            // Content-Type
+            pw.print(("Content-Type: text/html; charset=utf-8"));
+            pw.print("\r\n");
+            pw.flush();
+        }
+    }
+
+    private static void postRequest(Socket client, String resource, String fifthLine, String sixthLine)
+            throws IOException {
+        System.out.println("POST request resource from: " + resource);
+        LocalDateTime dateTime = LocalDateTime.now();
+
+        OutputStream clientOutput = client.getOutputStream();
+        clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
+        clientOutput.write(("\r\n").getBytes());
+        // Status Code
+        clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
+        // Date
+        clientOutput.write(("Date: " + dateTime.toString() + "\r\n").getBytes());
+        // Server
+        clientOutput.write(("Server: " + server + "\r\n").getBytes());
+        // Content-Length
+        clientOutput.write((fifthLine + "\r\n").getBytes());
+        // Content-Type
+        clientOutput.write((sixthLine + "\r\n").getBytes());
+        clientOutput.flush();
+    }
+
+    private static void putRequest(Socket client, String resource, String fifthLine, String sixthLines)
+            throws IOException {
+        System.out.println("PUT request resource from: " + resource);
+        LocalDateTime dateTime = LocalDateTime.now();
+
+        OutputStream clientOutput = client.getOutputStream();
+        clientOutput.write(("HTTP/1.1 201 Created\r\n").getBytes());
+        clientOutput.write(("\r\n").getBytes());
+        // Status Code
+        clientOutput.write(("HTTP/1.1 201 Created" + "\r\n").getBytes());
+        // Date
+        clientOutput.write(("Date: " + dateTime.toString() + "\r\n").getBytes());
+        // Server
+        clientOutput.write(("Server: " + server + "\r\n").getBytes());
+        // Content-Length
+        clientOutput.write((fifthLine + "\r\n").getBytes());
+        // Content-Type
+        clientOutput.write((sixthLines + "\r\n").getBytes());
+        clientOutput.flush();
+    }
+
+    private static void deleteRequest(Socket client, String resource) throws IOException {
+        System.out.println("DELETE request resource from: " + resource);
+        LocalDateTime dateTime = LocalDateTime.now();
+
+        OutputStream clientOutput = client.getOutputStream();
+        clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
+        clientOutput.write(("\r\n").getBytes());
+        // Status Code
+        clientOutput.write(("HTTP/1.1 204 No Content" + "\r\n").getBytes());
+        // Date
+        clientOutput.write(("Date: " + dateTime.toString() + "\r\n").getBytes());
+        // Server
+        clientOutput.write(("Server: " + server + "\r\n").getBytes());
+        // Content-Length
+        clientOutput.write(("Content-Length: 0" + "\r\n").getBytes());
+        // Content-Type
+        clientOutput.write(("Content-Type: text/html; charset=utf-8" + "\r\n").getBytes());
+        clientOutput.flush();
+    }
+
+    // * Print functions
+    private static void response_200(PrintWriter pw) {
+        LocalDateTime dateTime = LocalDateTime.now();
+        pw.print(("HTTP/1.1 200 OK"));
+        pw.print("\r\n");
+        // Date
+        pw.print(("Date: " + dateTime.toString()));
+        pw.print("\r\n");
+        // Server
+        pw.print(("Server: " + server));
+        pw.print("\r\n");
+        // Content-Length
+        pw.print(("Content-Length: 0"));
+        pw.print("\r\n");
+        // Content-Type
+        pw.print(("Content-Type: text/html; charset=utf-8"));
+        pw.print("\r\n");
+    }
+
+    private static void printRequest(StringBuilder request) {
+        System.out.println("--REQUEST--");
+        System.out.println("Request: " + request);
+    }
+
+    public static void send401Response(Socket socket) throws IOException {
+        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+
+        writer.write("HTTP/1.1 401 Unauthorized \r\n");
+        writer.write("Server: itsmejrob\r\n");
+        writer.write("WW-Authenticate: Basic\r\n");
+        writer.flush();
     }
 }

@@ -5,20 +5,22 @@ import java.net.*;
 import java.time.*;
 import java.util.*;
 
+import server.config.Configuration;
+
 public class Server {
     private static final String server = "Chau & Satumba";
     private static int port;
     private Hashtable<String, String> configMap;
-    private Hashtable<String, String[]> mimeTypesMap;
-    private static String documentRoot;
-    private static String logFile;
-    private static String scriptAlias;
-    private static String alias;
+    // private Hashtable<String, String[]> mimeTypesMap;
+    // private static String documentRoot;
+    // private static String logFile;
+    // private static String scriptAlias;
+    // private static String alias;
 
     public Server() {
         Configuration config = new Configuration("conf/httpd.conf", "conf/mime.types");
-        this.configMap = config.getConfigMap();
-        this.mimeTypesMap = config.getMimeTypesMap();
+        this.configMap = config.getConfigTable();
+        // this.mimeTypesMap = config.getMimeTypesMap();
         port = Integer.parseInt(configMap.get("Listen".toString()));
     }
 

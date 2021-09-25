@@ -1,4 +1,4 @@
-package server;
+package server.config;
 
 import java.io.*;
 import java.net.*;
@@ -7,15 +7,15 @@ import java.util.*;
 public class Configuration {
     final String httpdConfFile;
     final String mimeTypesFile;
-    static Hashtable<String, String> configMap;
-    static Hashtable<String, String[]> mimeTypesMap;
+    static Hashtable<String, String> configTable;
+    static Hashtable<String, String[]> mimeTypesTable;
  
     public Configuration(String httpdConfFile, String mimeTypesFile) {
         System.out.println("⏳ Reading httpd.conf and mime.types...");
         this.httpdConfFile = httpdConfFile;
         this.mimeTypesFile = mimeTypesFile;
         try {
-            configMap = new Hashtable<>();
+            configTable = new Hashtable<>();
             FileInputStream fis = new FileInputStream(httpdConfFile);
             DataInputStream dis = new DataInputStream(fis);
             BufferedReader br = new BufferedReader(new InputStreamReader(dis));
@@ -27,17 +27,24 @@ public class Configuration {
                 // if(!line.startsWith("#") && !line.isBlank() && line.contains("lias")) {
                 //     directive = line.split(" ", 3);
                 //     String alias[] = {directive[1], directive[2]};
-                //     configMap.put(directive[0], alias);
+                //     configTable.put(directive[0], alias);
                 // }
                 if(!line.startsWith("#") && !line.isBlank()) {
-                    directive = line.split(" ", 2);
-                    configMap.put(directive[0], directive[1]);
-                    System.out.println(configMap.get(directive[0]));
+                    directive = line.split(" ", 3);
+                    if(directive[0].contains("Alias")) {
+                        String aliasDir = directive[0].concat(" ").concat(directive[1]);
+                        configTable.put(aliasDir.toString().trim(), directive[2].trim());  
+                        System.out.println(configTable.get(aliasDir));
+  
+                    } else {
+                        configTable.put(directive[0], directive[1]);
+                        System.out.println(configTable.get(directive[0]));
+                    }
+
                     sb.append(line + "\r\n");
-                    // TODO: handle aliases (/~traciely/ "/home/ajwc/SFSU/CSC667/Assignments/web-server/public_html/")
                 } 
             }
-            // print(configMap)
+            // print(configTable)
             br.close();
             dis.close();
             fis.close();
@@ -48,7 +55,7 @@ public class Configuration {
         }
         try {
             String[] fileExtension;
-            mimeTypesMap = new Hashtable<>();
+            mimeTypesTable = new Hashtable<>();
             FileInputStream fis = new FileInputStream(mimeTypesFile);
             DataInputStream dis = new DataInputStream(fis);
             BufferedReader br = new BufferedReader(new InputStreamReader(dis));
@@ -60,14 +67,14 @@ public class Configuration {
                     mimeType = line.split("\\s+", 2);                    
                     if(mimeType.length == 2) {                        
                         fileExtension = mimeType[1].trim().split("\\s+");
-                        // System.out.println(mimeTypesMap.size() + " : " + mimeType[0] + " " + mimeType[1]);
-                        mimeTypesMap.put(mimeType[0], fileExtension);
-                        // System.out.println(Arrays.toString(mimeTypesMap.get(mimeType[0])));
+                        // System.out.println(mimeTypesTable.size() + " : " + mimeType[0] + " " + mimeType[1]);
+                        mimeTypesTable.put(mimeType[0], fileExtension);
+                        // System.out.println(Arrays.toString(mimeTypesTable.get(mimeType[0])));
                         sb.append(line + "\r\n");
                     } 
                     // else {
                     //     fileExtension = new String[0];
-                    //     mimeTypesMap.put(mimeType[0], fileExtension);
+                    //     mimeTypesTable.put(mimeType[0], fileExtension);
                     // }
                 }
             }
@@ -84,19 +91,19 @@ public class Configuration {
 
     }
 
-    public Hashtable<String, String> getConfigMap() {
-        return configMap;
+    public Hashtable<String, String> getConfigTable() {
+        return configTable;
     }
 
-    public Hashtable<String, String[]> getMimeTypesMap() {
-        return mimeTypesMap;
+    public Hashtable<String, String[]> getMimeTypesTable() {
+        return mimeTypesTable;
     }
 
     private void checkDirectives() {
-        for(String i : configMap.keySet()) {
+        for(String i : configTable.keySet()) {
             getDirective(i);
         }
-        // switch(configMap) {
+        // switch(configTable) {
         //     case "Listen": {
         //         getDirective(directive[0]);
         //         break;
@@ -124,9 +131,9 @@ public class Configuration {
     }
 
     private String getServerRoot() {
-        return configMap.get("Listen");
+        return configTable.get("Listen");
     }
     public String getDirective(String directive) {
-        return configMap.get(directive);
+        return configTable.get(directive);
     }
 }
