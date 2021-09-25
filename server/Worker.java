@@ -25,18 +25,14 @@ public class Worker implements Runnable {
 
     private void proccessRequest() throws IOException {
         while (true) {
-            // Handle a new incoming message
-            // try (Socket client = serverSocket.accept()) {
-            // client <-- messages queued up in it!!
             // System.out.println("Debug: got new message " + client.toString());
             // Read the request - listen to the messages; Bytes -> Chars
             InputStreamReader isr = new InputStreamReader(socket.getInputStream());
             // Reads text from char-input stream,
             BufferedReader br = new BufferedReader(isr);
             // Read the first request from the client
-            StringBuilder request = new StringBuilder();
-            String line; // Temp variable called line that holds one line at a time of our message
-
+            StringBuilder request = new StringBuilder();            
+            String line;
             line = br.readLine();
             while (!line.isBlank()) {
                 request.append(line + "\r\n");
@@ -86,6 +82,7 @@ public class Worker implements Runnable {
     private static void getRequest(Socket client, String resource) throws IOException {
         // Compare the "resource" to our list of things
         System.out.println("GET request resource from: " + resource);
+        System.out.println(client);
         PrintWriter pw = new PrintWriter(client.getOutputStream());
         BufferedOutputStream bw = new BufferedOutputStream(client.getOutputStream());
         LocalDateTime dateTime = LocalDateTime.now();

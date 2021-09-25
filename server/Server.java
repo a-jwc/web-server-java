@@ -27,7 +27,7 @@ public class Server {
     }
 
     public void start() throws IOException {
-        try (ServerSocket serverSocket = new ServerSocket(port)) {
+        try (final ServerSocket serverSocket = new ServerSocket(port)) {
             System.out.println("Server started. \nListening for messages.");
             while (true) {
                 // Handle a new incoming message

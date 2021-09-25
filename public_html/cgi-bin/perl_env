@@ -8,6 +8,7 @@ print start_html("Environment");
 
 foreach my $key (sort(keys(%ENV))) {
     print "$key = $ENV{$key}<br>\n";
+    print "hello"
 }
 
 print end_html;
