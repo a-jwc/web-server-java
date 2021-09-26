@@ -5,6 +5,7 @@ import java.net.*;
 import java.text.SimpleDateFormat;
 import java.time.*;
 import java.util.*;
+import java.util.concurrent.atomic.*;
 // * Current "run server" command: javac public_html/cgi-bin/RunScript.java;javac server/config/Configuration.java;javac server/Server.java;javac server/Worker.java;javac WebServer.java;java WebServer
 
 import server.config.Configuration;
@@ -26,6 +27,7 @@ public class Worker implements Runnable {
     private static String extension;
     private static String lastModified;
     private static String htAccess;
+    private final AtomicBoolean running = new AtomicBoolean(false);
 
     public Worker(Socket socket) {
         this.socket = socket;
@@ -50,7 +52,8 @@ public class Worker implements Runnable {
     }
 
     private synchronized void proccessRequest() {
-        while (true) {
+        running.set(true);
+        while (running.get()) {
             try {
                 // System.out.println("Debug: got new message " + client.toString());
                 // * Read the request - listen to the messages; Bytes -> Chars
@@ -62,6 +65,7 @@ public class Worker implements Runnable {
                 String line;
                 line = br.readLine();
                 int count = 0;
+                // while (line != null) {
                 while (!line.isEmpty()) {
                     request.append(line + "\r\n");
                     line = br.readLine();
@@ -72,13 +76,16 @@ public class Worker implements Runnable {
                 System.out.println(request);
 
                 checkRequest(socket, request);
+                System.out.println("Thread count: " + Thread.activeCount());
             } catch (IOException e) {
                 e.printStackTrace();
+                // stopThread();
+                throw new RuntimeException(e);
             }
         }
     }
 
-    private static synchronized void checkRequest(Socket client, StringBuilder req) throws IOException {
+    private static void checkRequest(Socket client, StringBuilder req) throws IOException {
         String reqArr[] = req.toString().split("\\r?\\n", 10);
         // * Get the first line of the request; Get "resource" and "method" from first
         // line
@@ -114,7 +121,7 @@ public class Worker implements Runnable {
         }
     }
 
-    private static synchronized void getRequest(Socket client, String resource) throws IOException {
+    private static void getRequest(Socket client, String resource) throws IOException {
         // * Compare the "resource" to our list of resources
         System.out.println("GET request resource from: " + resource);
 
@@ -187,10 +194,27 @@ public class Worker implements Runnable {
         if (resource.equals("/")) {
             // Load the image from the filesystem
             String defaultIndex = documentRoot + "/" + directoryIndex;
-            // FileInputStream indexHTML = new FileInputStream(defaultIndex);
-            FileInputStream indexHTML = new FileInputStream("./public_html/ab1/ab2/index.html");
+            System.out.println("default index: " + defaultIndex);
+            FileInputStream indexHTML = new FileInputStream(defaultIndex);
+            // FileInputStream indexHTML = new FileInputStream("./public_html/ab1/ab2/index.html");
             OutputStream clientOutput = client.getOutputStream();
-            clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
+            clientOutput.write(("HTTP/1.1 200 OK").getBytes());
+            clientOutput.write(("\r\n").getBytes());
+            // clientOutput.write(("Connection: Keep-Alive").getBytes());
+            // clientOutput.write(("\r\n").getBytes());
+            clientOutput.write(("Content-Type: " + contentType).getBytes());
+            clientOutput.write(("\r\n").getBytes());
+            clientOutput.write(("Server: " + server).getBytes());
+            clientOutput.write(("\r\n").getBytes());
+            // clientOutput.write(("Transfer-Encoding: chunked").getBytes());
+            // clientOutput.write(("\r\n").getBytes());
+            clientOutput.write(("Content-Encoding: gzip").getBytes());
+            clientOutput.write(("\r\n").getBytes());
+            // clientOutput.write(("Keep-Alive: timeout=5, max=999").getBytes());
+            // clientOutput.write(("\r\n").getBytes());
+            clientOutput.write(("\r\n").getBytes());
+            clientOutput.write(("Vary: Accept-Encoding").getBytes());
+            clientOutput.write(("\r\n").getBytes());
             clientOutput.write(("\r\n").getBytes());
             clientOutput.write(indexHTML.readAllBytes());
             indexHTML.close();
@@ -245,8 +269,6 @@ public class Worker implements Runnable {
             // Status code
             pw.print(("HTTP/1.1 400 Not Found\r\n"));
             pw.print("\r\n");
-            // print
-            pw.print(("HTTP/1.1 400 Not Found\r\n"));
             // Date
             pw.print(("Date: " + dateTime.toString()));
             pw.print("\r\n");
@@ -472,6 +494,12 @@ public class Worker implements Runnable {
     private static void getAccessHeaders() {
 
     }
+
+    private void stopThread() {
+        running.set(false);
+    }
+
+
 
     // * Print functions
     private static void response_200(PrintWriter pw) {
