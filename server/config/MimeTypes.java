@@ -1,6 +1,5 @@
 package server.config;
 
-import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class MimeTypes {
