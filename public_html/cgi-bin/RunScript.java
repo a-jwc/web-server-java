@@ -20,11 +20,11 @@ public class RunScript {
             // * Create two new file objects: env variables, errors
             File outputTxt = new File("standard-output.txt");
             File errorLog = new File("error.log");
-            
-            // pb.redirectErrorStream(true);
-            // env.put("GREETING", "Hola Mundo");
 
+            // * Run script
             pb.command(pathToScript);
+
+            // * Append output to text and log files respectively
             pb.redirectOutput(Redirect.appendTo(outputTxt));
             pb.redirectError(Redirect.appendTo(errorLog));
             pb.start();
