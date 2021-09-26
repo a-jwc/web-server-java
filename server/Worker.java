@@ -27,6 +27,8 @@ public class Worker implements Runnable {
     private static String extension;
     private static String lastModified;
     private static String htAccess;
+    private static String dateTime;
+    private static String dirAlias = null;
     private final AtomicBoolean running = new AtomicBoolean(false);
 
     public Worker(Socket socket) {
@@ -39,6 +41,7 @@ public class Worker implements Runnable {
         // * Local access to the mime types via mimeTypes object
         mimeTypes = new MimeTypes(config.getMimeTypesMap());
         contentLength = 0;
+        
     }
 
     @Override
@@ -50,7 +53,7 @@ public class Worker implements Runnable {
             e.printStackTrace();
         }
     }
-
+    
     private synchronized void proccessRequest() {
         running.set(true);        
         while (running.get()) {
@@ -73,71 +76,47 @@ public class Worker implements Runnable {
                     count++;
                 }
 
-                System.out.println("--REQUEST--");
-                System.out.println(request);
+                printRequest(request);
+                parseResource(socket, request);    
 
-                checkRequest(socket, request);
+                if(request != null && request.toString().length() != 0) {
+
+                }
                 System.out.println("Thread count: " + Thread.activeCount());
+                System.out.println("Thread " + Thread.currentThread() + " is currently ");
+                
                 Thread.yield();
+                // stopThread();
                 // wait();
             } catch (IOException e) {
                 e.printStackTrace();
-                // stopThread();
                 throw new RuntimeException(e);
             }
         }
     }
 
-    private static synchronized void checkRequest(Socket client, StringBuilder req) throws IOException {
+    private static synchronized void parseResource(Socket client, StringBuilder req) throws IOException {
         String reqArr[] = req.toString().split("\\r?\\n", 10);
-        // * Get the first line of the request; Get "resource" and "method" from first
-        // line
+        // * Get the first line of the request; Get "resource" and "method" from first line
         String firstLine = reqArr[0];
         // System.out.println(firstLine);
         // * Split by whitespace for as many elements are in the first line
         String requestLine[] = firstLine.split(" ", 0);
         String method = requestLine[0];
         String resource = requestLine[1];
-        // System.out.println("");
         // httpdConfig.printAll();
         // String fifthLine = reqArr[4];
-        String fifthLine = "null";
-        // * Switch on method
-        switch (method) {
-            case "GET":
-                getRequest(client, resource);
-                break;
-            case "HEAD":
-                headRequest(client, resource);
-                break;
-            case "POST":
-                String sixthLine = reqArr[5];
-                postRequest(client, resource, fifthLine, sixthLine);
-                break;
-            case "PUT":
-                String sixthLines = reqArr[5];
-                putRequest(client, resource, fifthLine, sixthLines);
-                break;
-            case "DELETE":
-                deleteRequest(client, resource);
-                break;
-        }
-    }
-
-    private static synchronized void getRequest(Socket client, String resource) throws IOException {
-        System.out.println("GET request resource from: " + resource);
 
         // * Create and format Date field
         String dateTimePattern = "EEE, d MMM yyyy HH:mm:ss z";
         SimpleDateFormat sdf = new SimpleDateFormat(dateTimePattern);
-        String dateTime = sdf.format(new Date());
+        dateTime = sdf.format(new Date());
 
         // * Get document roots and index from hash Map
         documentRoot = httpdConfig.getDocumentRoot("DocumentRoot");
         directoryIndex = httpdConfig.getDirectoryIndex();
 
         // * Get alias
-        String dirAlias = null;
         String tempAlias = "Alias " + resource;
         if(httpdConfig.getMap().containsKey(tempAlias)) {
             dirAlias = httpdConfig.getMap().get(tempAlias);
@@ -166,6 +145,7 @@ public class Worker implements Runnable {
         if(htAccessExist()) {
             // TODO
             getAccessHeaders();
+            
         } else {
             PrintWriter pw = new PrintWriter(client.getOutputStream());
             // Status code
@@ -188,6 +168,70 @@ public class Worker implements Runnable {
             pw.flush();
         }
 
+        // * If the file exists, continue to check the request method (GET, POST, HEAD, etc.)
+        // * Else, respond with a 400 response 
+        // TODO: Put 404 response into its own method
+        if(fileExists(dirAlias)) {
+            checkRequestVerb(client, method, resource);
+        } else {
+            PrintWriter pw = new PrintWriter(client.getOutputStream());
+
+            // Status code
+            pw.print(("HTTP/1.1 404 Not Found\r\n"));
+            pw.print("\r\n");
+            // print
+            pw.print(("HTTP/1.1 404 Not Found\r\n"));
+            // Date
+            pw.print(("Date: " + dateTime.toString()));
+            pw.print("\r\n");
+            // Server
+            pw.print(("Server: " + server));
+            pw.print("\r\n");
+            // Content-Length
+            pw.print(("Content-Length: " + contentLength));
+            pw.print("\r\n");
+            // Content-Type
+            pw.print(("Content-Type: " + contentType + "\r\n"));
+            pw.print("\r\n");
+            pw.flush();
+        }
+    }
+
+    private static boolean fileExists(String dirAlias) {
+        File file = new File(dirAlias);
+        if(file.exists()) {
+            return true;
+        }
+        return false;
+    }
+
+    private static synchronized void checkRequestVerb(Socket client, String method, String resource) throws IOException {
+
+        // * Switch on method
+        switch (method) {
+            case "GET":
+                getRequest(client, resource);
+                break;
+            case "HEAD":
+                headRequest(client, resource);
+                break;
+            case "POST":
+                // String sixthLine = reqArr[5];
+                // postRequest(client, resource, fifthLine, sixthLine);
+                break;
+            case "PUT":
+                // String sixthLines = reqArr[5];
+                // putRequest(client, resource, fifthLine, sixthLines);
+                break;
+            case "DELETE":
+                deleteRequest(client, resource);
+                break;
+        }
+    }
+
+    private static synchronized void getRequest(Socket client, String resource) throws IOException {
+        System.out.println("GET request resource from: " + resource);
+
         // System.out.println("Content type: " + contentType);
 
         // Worker.scriptAlias = httpdConfig.getScriptAlias("scriptAlias");
@@ -196,39 +240,18 @@ public class Worker implements Runnable {
         System.out.println("Socket object: " + client);
 
         // * Compare the "resource" to our list of resources
-        if (resource.equals("/")) {
-            // Load the image from the filesystem
+        if (resource.equals("/")) {            
             String defaultIndex = documentRoot + "/" + directoryIndex;
             System.out.println("default index: " + defaultIndex);
             FileInputStream indexHTML = new FileInputStream(defaultIndex);
             // FileInputStream indexHTML = new FileInputStream("./public_html/ab1/ab2/index.html");
             OutputStream clientOutput = client.getOutputStream();
-            clientOutput.write(("HTTP/1.1 200 OK").getBytes());
-            clientOutput.write(("\r\n").getBytes());
-            // clientOutput.write(("Connection: Keep-Alive").getBytes());
-            // clientOutput.write(("\r\n").getBytes());
-            clientOutput.write(("Content-Type: " + contentType).getBytes());
-            clientOutput.write(("\r\n").getBytes());
-            clientOutput.write(("Server: " + server).getBytes());
-            clientOutput.write(("\r\n").getBytes());
-            // clientOutput.write(("Transfer-Encoding: chunked").getBytes());
-            // clientOutput.write(("\r\n").getBytes());
-            clientOutput.write(("Content-Encoding: gzip").getBytes());
-            clientOutput.write(("\r\n").getBytes());
-            // clientOutput.write(("Keep-Alive: timeout=5, max=999").getBytes());
-            // clientOutput.write(("\r\n").getBytes());
-            clientOutput.write(("\r\n").getBytes());
-            clientOutput.write(("Vary: Accept-Encoding").getBytes());
-            clientOutput.write(("\r\n").getBytes());
-            clientOutput.write(("\r\n").getBytes());
-            clientOutput.write(indexHTML.readAllBytes());
-            indexHTML.close();
-            clientOutput.flush();
+            co_response_200(clientOutput, indexHTML);
             // System.out.println("2: " + client);
         } else if (resource.contains("/image")) {
             // Load the image from the filesystem
-            FileInputStream image = new FileInputStream("./public_html/images/sushi.jpg");
-            // FileInputStream image = new FileInputStream(documentRoot + resource);
+            // FileInputStream image = new FileInputStream("./public_html/images/sushi.jpg");
+            FileInputStream image = new FileInputStream(documentRoot + resource);
             OutputStream clientOutput = client.getOutputStream();
             clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
             clientOutput.write(("\r\n").getBytes());
@@ -268,25 +291,6 @@ public class Worker implements Runnable {
             clientOutput.write(indexHTML.readAllBytes());
             indexHTML.close();
             clientOutput.flush();
-        } else if (resource.equals("/400")) {
-            PrintWriter pw = new PrintWriter(client.getOutputStream());
-
-            // Status code
-            pw.print(("HTTP/1.1 400 Not Found\r\n"));
-            pw.print("\r\n");
-            // Date
-            pw.print(("Date: " + dateTime.toString()));
-            pw.print("\r\n");
-            // Server
-            pw.print(("Server: " + server));
-            pw.print("\r\n");
-            // Content-Length
-            pw.print(("Content-Length: " + contentLength));
-            pw.print("\r\n");
-            // Content-Type
-            pw.print(("Content-Type: text/html; charset=utf-8"));
-            pw.print("\r\n");
-            pw.flush();
         } else if (resource.equals("/500")) {
             PrintWriter pw = new PrintWriter(client.getOutputStream());
 
@@ -504,10 +508,8 @@ public class Worker implements Runnable {
         running.set(false);
     }
 
-
-
     // * Print functions
-    private static void response_200(PrintWriter pw) {
+    private static void pw_response_200(PrintWriter pw) {
         LocalDateTime dateTime = LocalDateTime.now();
         pw.print(("HTTP/1.1 200 OK"));
         pw.print("\r\n");
@@ -523,6 +525,35 @@ public class Worker implements Runnable {
         // Content-Type
         pw.print(("Content-Type: text/html; charset=utf-8"));
         pw.print("\r\n");
+    }
+
+    private static void co_response_200(OutputStream clientOutput, FileInputStream indexHTML) {
+        try {
+            clientOutput.write(("HTTP/1.1 200 OK").getBytes());
+            clientOutput.write(("\r\n").getBytes());
+            clientOutput.write(("Server: " + server).getBytes());
+            clientOutput.write(("\r\n").getBytes());
+            clientOutput.write(("Connection: Keep-Alive").getBytes());
+            clientOutput.write(("\r\n").getBytes());
+            clientOutput.write(("Content-Type: " + contentType).getBytes());
+            clientOutput.write(("\r\n").getBytes());
+            clientOutput.write(("Content-Language: en").getBytes());
+            clientOutput.write(("\r\n").getBytes());
+            // clientOutput.write(("Transfer-Encoding: chunked").getBytes());
+            // clientOutput.write(("\r\n").getBytes());
+            // clientOutput.write(("Content-Encoding: gzip").getBytes());
+            // clientOutput.write(("\r\n").getBytes());
+            clientOutput.write(("Keep-Alive: timeout=5, max=999").getBytes());
+            clientOutput.write(("\r\n").getBytes());
+            clientOutput.write(("Vary: Accept-Encoding").getBytes());
+            clientOutput.write(("\r\n").getBytes());
+            clientOutput.write(("\r\n").getBytes());
+            clientOutput.write(indexHTML.readAllBytes());
+            indexHTML.close();
+            clientOutput.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private static void printRequest(StringBuilder request) {
