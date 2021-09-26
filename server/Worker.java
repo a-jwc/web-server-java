@@ -31,7 +31,7 @@ public class Worker implements Runnable {
         this.socket = socket;
         // * Instantiate new Configuration object
         Configuration config = new Configuration("conf/httpd.conf", "conf/mime.types");
-        config.readHttpdConfig(); config.readMimeTypes();        
+        config.readHttpdConfig(); config.readMimeTypes();
         // * Local access to the directives via httpdConfig object
         httpdConfig = new HttpdConfig(config.getConfigMap());
         // * Local access to the mime types via mimeTypes object
@@ -135,7 +135,7 @@ public class Worker implements Runnable {
         }
 
         // * Check if requesting file
-        // * Get the content type by looping through the set of keys which are string arrays that contain the extensions 
+        // * Get the content type by looping through the set of keys which are string arrays that contain the extensions
         if(resource.contains(".")) {
             extension = resource.substring(resource.lastIndexOf(".") + 1);
             System.out.println("Extension: " + extension);
@@ -177,8 +177,8 @@ public class Worker implements Runnable {
             pw.print("\r\n");
             pw.flush();
         }
-        
-        // System.out.println("Content type: " + contentType);                
+
+        // System.out.println("Content type: " + contentType);
 
         // Worker.scriptAlias = httpdConfig.getScriptAlias("scriptAlias");
 
@@ -187,7 +187,8 @@ public class Worker implements Runnable {
         if (resource.equals("/")) {
             // Load the image from the filesystem
             String defaultIndex = documentRoot + "/" + directoryIndex;
-            FileInputStream indexHTML = new FileInputStream(defaultIndex);
+            // FileInputStream indexHTML = new FileInputStream(defaultIndex);
+            FileInputStream indexHTML = new FileInputStream("./public_html/ab1/ab2/index.html");
             OutputStream clientOutput = client.getOutputStream();
             clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
             clientOutput.write(("\r\n").getBytes());
@@ -197,8 +198,8 @@ public class Worker implements Runnable {
             // System.out.println("2: " + client);
         } else if (resource.contains("/image")) {
             // Load the image from the filesystem
-            // FileInputStream image = new FileInputStream("./public_html/images/sushi.jpg");
-            FileInputStream image = new FileInputStream(documentRoot + resource);
+            FileInputStream image = new FileInputStream("./public_html/images/sushi.jpg");
+            // FileInputStream image = new FileInputStream(documentRoot + resource);
             OutputStream clientOutput = client.getOutputStream();
             clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
             clientOutput.write(("\r\n").getBytes());
@@ -302,7 +303,7 @@ public class Worker implements Runnable {
             pw.print("\r\n");
             // Last-modified
             pw.print(("Last-Modified: " + lastModified + "\r\n"));
-            pw.print("\r\n");            
+            pw.print("\r\n");
             pw.flush();
         } else {
             PrintWriter pw = new PrintWriter(client.getOutputStream());
@@ -463,7 +464,7 @@ public class Worker implements Runnable {
 
     private static boolean htAccessExist() {
         if(htAccess.length() != 0) {
-            return true;    
+            return true;
         }
         return false;
     }
