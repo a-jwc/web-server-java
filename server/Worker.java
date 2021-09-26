@@ -55,6 +55,7 @@ public class Worker implements Runnable {
     @Override
     public void run() {
         try {
+            System.out.println("📨 Request received!");
             System.out.println("🎈 " + Thread.currentThread().getName() + " running.");
             proccessRequest();
         } catch (Exception e) {
