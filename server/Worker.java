@@ -4,7 +4,7 @@ import java.io.*;
 import java.net.*;
 import java.time.*;
 import java.util.*;
-// * Current "run server" command: javac server/Configuration.java;javac server/Server.java;javac server/Worker.java;javac WebServer.java;java WebServer
+// * Current "run server" command: javac public_html/cgi-bin/RunScript.java;javac server/config/Configuration.java;javac server/Server.java;javac server/Worker.java;javac WebServer.java;java WebServer
 
 import server.config.Configuration;
 import server.config.HttpdConfig;
@@ -17,16 +17,13 @@ public class Worker implements Runnable {
     private static String documentRoot;
     private static String logFile;
     private static String scriptAlias;
-    private static String abAlias;
-    private static String tracielyAlias;
     private static String directoryIndex;
     private static HttpdConfig httpdConfig;
     private static MimeTypes mimeTypes;
     private static String contentType;
     private static int contentLength;
     private static String extension;
-
-
+    private static String lastModified;
 
     public Worker(Socket socket) {
         this.socket = socket;
@@ -116,7 +113,6 @@ public class Worker implements Runnable {
     private static synchronized void getRequest(Socket client, String resource) throws IOException {
         // * Compare the "resource" to our list of resources
         System.out.println("GET request resource from: " + resource);
-        PrintWriter pw = new PrintWriter(client.getOutputStream());
         LocalDateTime dateTime = LocalDateTime.now();
 
         // * Get document roots and index from hash Map
@@ -141,6 +137,7 @@ public class Worker implements Runnable {
                 }
             }
         } else {
+            // * If the resource is not a file, append index.html to the end
             dirAlias = dirAlias + directoryIndex;
         }
         // System.out.println("Content type: " + contentType);                
@@ -178,7 +175,6 @@ public class Worker implements Runnable {
             image.close();
             clientOutput.flush();
         } else if (resource.equals("/ab/")) {
-            // abAlias = httpdConfig.getabAlias("Alias " + resource);
             System.out.println("1: " + client);
             FileInputStream indexHTML = new FileInputStream(dirAlias);
             OutputStream clientOutput = client.getOutputStream();
@@ -188,7 +184,15 @@ public class Worker implements Runnable {
             indexHTML.close();
             clientOutput.flush();
         } else if (resource.equals("/~traciely/")) {
-            // tracielyAlias = httpdConfig.getabAlias("Alias " + resource);
+            FileInputStream indexHTML = new FileInputStream(dirAlias);
+            OutputStream clientOutput = client.getOutputStream();
+            clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
+            clientOutput.write(("\r\n").getBytes());
+            clientOutput.write(indexHTML.readAllBytes());
+            indexHTML.close();
+            clientOutput.flush();
+        } else if (resource.equals("/cgi-bin/")) {
+            System.out.println("1: " + client);
             FileInputStream indexHTML = new FileInputStream(dirAlias);
             OutputStream clientOutput = client.getOutputStream();
             clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
@@ -197,6 +201,8 @@ public class Worker implements Runnable {
             indexHTML.close();
             clientOutput.flush();
         } else if (resource.equals("/400")) {
+            PrintWriter pw = new PrintWriter(client.getOutputStream());
+
             // Status code
             pw.print(("HTTP/1.1 400 Not Found\r\n"));
             pw.print("\r\n");
@@ -216,6 +222,8 @@ public class Worker implements Runnable {
             pw.print("\r\n");
             pw.flush();
         } else if (resource.equals("/500")) {
+            PrintWriter pw = new PrintWriter(client.getOutputStream());
+
             // Status code
             pw.print(("HTTP/1.1 500 Internal Server Error\r\n"));
             pw.print("\r\n");
@@ -235,6 +243,8 @@ public class Worker implements Runnable {
             pw.print("\r\n");
             pw.flush();
         } else if (resource.equals("/304")) {
+            PrintWriter pw = new PrintWriter(client.getOutputStream());
+
             // Status code
             pw.print(("HTTP/1.1 200 OK\r\n"));
             pw.print("\r\n");
@@ -252,8 +262,13 @@ public class Worker implements Runnable {
             // Content-Type
             pw.print(("Content-Type: " + contentType + "\r\n"));
             pw.print("\r\n");
+            // Last-modified
+            pw.print(("Last-Modified: " + lastModified + "\r\n"));
+            pw.print("\r\n");            
             pw.flush();
         } else {
+            PrintWriter pw = new PrintWriter(client.getOutputStream());
+
             // Status code
             pw.print(("HTTP/1.1 404 Not Found\r\n"));
             pw.print("\r\n");
