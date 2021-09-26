@@ -3,3 +3,8 @@ src/*.class
 *.jar
 test.java
 .vscode/
+.idea
+out
+*.iml
+public_html/cgi-bin/error.log
+public_html/cgi-bin/standard-output.txt

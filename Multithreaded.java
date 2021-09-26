@@ -34,7 +34,7 @@ public class Multithreaded {
   }
 }
 
-final class HttpRequestHandler implements Runnable {
+class HttpRequestHandler implements Runnable {
   final static String CRLF = "\r\n";
   private static String server = "Chau & Satumba";
   private Socket socket;
@@ -44,136 +44,173 @@ final class HttpRequestHandler implements Runnable {
   }
 
   @Override
-  public void run() {
-    try {
-      proccessRequest();
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-  }
-
-  private void proccessRequest() throws IOException {
-    // Read the request - listen to the messages
-    // Bytes -> Chars
-    InputStreamReader isr = new InputStreamReader(socket.getInputStream());
-    // Reads text from char-input stream
-    BufferedReader br = new BufferedReader(isr);
-    // Read the first request from the client
-    StringBuilder request = new StringBuilder();
-    String http_version = "";
-    // String reqLine = br.readLine();
-    // System.out.println("reqLine: " + reqLine + "\n");
-    String headerLine = br.readLine();
-    while (!headerLine.isBlank()) {
-      request.append(headerLine + "\r\n");
-      if (headerLine.contains("HTTP/1.1")) {
-        http_version = headerLine;
-      }
-      headerLine = br.readLine();
-      System.out.println("headerLine: " + headerLine + "\n");
+    public void run() {
+        try {
+            proccessRequest();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
-    // printRequest(request);
-    checkRequest(socket, request);
-  }
-
-  public static void checkRequest(Socket client, StringBuilder req) throws IOException {
-    String reqArr[] = req.toString().split("\\r?\\n", 2);
-    // Get the first line of the request
-    String firstLine = reqArr[0];
-    // System.out.println("first line " + firstLine + "\nsecond line " + reqArr[1]);
-    // Get "resource" and "method" from first line
-    String method = firstLine.split(" ")[0];
-    String resource = firstLine.split(" ")[1];
-    System.out.println("method: " + method + "resource: " + resource);
-    // Decide how we'd like to respond
-    switch (method) {
-      case "GET":
-        getRequest(client, resource);
-        break;
-      case "POST":
-        postRequest(client, resource);
-        break;
-      case "HEAD":
-        headRequest(client, resource);
-        break;
-      case "PUT":
-        putRequest(client, resource);
-        break;
-      case "DELETE":
-        deleteRequest(client, resource);
-        break;
+    private void proccessRequest() {
+        while (true) {
+            try {
+                // System.out.println("Debug: got new message " + client.toString());
+                // Read the request - listen to the messages; Bytes -> Chars
+                InputStreamReader isr = new InputStreamReader(this.socket.getInputStream());
+                // Reads text from char-input stream,
+                BufferedReader br = new BufferedReader(isr);
+                // Read the first request from the client
+                StringBuilder request = new StringBuilder();            
+                String line;
+                
+                // line = br.readLine();
+                while ((line = br.readLine()) != null) {
+                    request.append(line + "\r\n");
+                    line = br.readLine();
+                }
+                
+                System.out.println("--REQUEST--");
+                System.out.println(request);
+                
+                checkRequest(socket, request);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            // client.close();
+            // }
+        }
     }
-  }
 
-  private static void getRequest(Socket client, String resource) throws IOException {
-    // Compare the "resource" to our list of things
-    System.out.println("GET request resource from: " + resource);
-    // PrintWriter pw = new PrintWriter(client.getOutputStream());
-    BufferedWriter pw = new BufferedWriter(new OutputStreamWriter(client.getOutputStream()));
-    resource = resource.toString();
-    if (resource.equals("/")) {
-      pw.write(response_200());
-      pw.write(("What are you looking for?"));
-      pw.flush();
-    } else if (resource.equals("/hello")) {
-      pw.write(response_200());
-      pw.write(("Hello World!"));
-      pw.flush();
-    } else if (resource.equals("/sushi")) {
-      System.out.println("This is sushi");
-      // Load the image from the filesystem
-      FileInputStream image = new FileInputStream("public_html/images/sushi.jpg");
-      System.out.println(image.toString());
-      pw.write(response_200());
-      // pw.write(image);
-      image.close();
-      pw.flush();
-    } else {
-      pw.write(response_200());
-      pw.write(("What are you looking for?"));
-      pw.flush();
+    public static void checkRequest(Socket client, StringBuilder req) throws IOException {
+        String reqArr[] = req.toString().split("\\r?\\n", 10);
+        // Get the first line of the request; Get "resource" and "method" from first
+        // line
+        String firstLine = reqArr[0];
+        String resource = firstLine.split(" ")[1];
+        String method = firstLine.split(" ")[0];
+
+        String fifthLine = reqArr[4];
+
+        switch (method) {
+            case "GET":
+                getRequest(client, resource);
+                break;
+        }
     }
-    // pw.flush();
-  }
 
-  private static void postRequest(Socket client, String body) {
-  }
+    private static void getRequest(Socket client, String resource) throws IOException {
+        // Compare the "resource" to our list of things
+        System.out.println("GET request resource from: " + resource);
+        // System.out.println(client);
+        PrintWriter pw = new PrintWriter(client.getOutputStream());
+        BufferedOutputStream bw = new BufferedOutputStream(client.getOutputStream());
+        LocalDateTime dateTime = LocalDateTime.now();
 
-  private static void headRequest(Socket client, String resource) {
-  }
+        if (resource.equals("/")) {
+            System.out.println("1: " + client);
+            // Load the image from the filesystem
+            FileInputStream indexHTML = new FileInputStream("public_html/ab1/ab2/index.html");
+            OutputStream clientOutput = client.getOutputStream();
+            clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
+            clientOutput.write(("\r\n").getBytes());
+            clientOutput.write(indexHTML.readAllBytes());
+            indexHTML.close();
+            clientOutput.flush();
+            System.out.println("2: " + client);
 
-  private static void putRequest(Socket client, String resource) {
-  }
-
-  private static void deleteRequest(Socket client, String resource) {
-  }
-
-  private static void printRequest(StringBuilder request) {
-    System.out.println("--REQUEST--");
-    System.out.println("Request: " + request);
-  }
-
-  private static void printRequestLine(String http_method, String uri, String http_version) {
-    System.out.println("HTTP_Method: " + http_method + "\nURI: " + uri + "\nHTTP_Version: " + http_version + "\n");
-  }
-
-  // private static String getBody(BufferedReader req) {
-  // StringBuilder sb = new StringBuilder();
-  // BufferedReader br = new req.getReader();
-  // String line;
-  // while((line = br.readLine()) != null) {
-  // sb.append(line);
-  // sb.append(System.lineSeparator());
-  // }
-  // return sb.toString();
-  // }
-
-  private static String response_200() {
-    LocalDateTime dateTime = LocalDateTime.now();
-    String response = "HTTP/1.1 200 OK\r\n" + "Date: " + dateTime.toString() + "\r\n" + "Server: " + server + "\r\n"
-        + "Content-Type: text/html; charset=utf-8\r\n" + "Content-Length: \r\n".getBytes();
-    return response;
-  }
-
+        } else if (resource.equals("/image")) {
+            // Load the image from the filesystem
+            FileInputStream image = new FileInputStream("public_html/images/sushi.jpg");
+            OutputStream clientOutput = client.getOutputStream();
+            clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
+            clientOutput.write(("\r\n").getBytes());
+            clientOutput.write(image.readAllBytes());
+            clientOutput.write(("Date: " + dateTime.toString() + "\r\n").getBytes());
+            // Server
+            clientOutput.write(("Server: " + server + "\r\n").getBytes());
+            // Content-Length
+            clientOutput.write(("Content-Length: 0" + "\r\n").getBytes());
+            // Content-Type
+            clientOutput.write(("Content-Type: image/jpg; charset=utf-8" + "\r\n").getBytes());
+            image.close();
+            clientOutput.flush();
+        } else if (resource.equals("/400")) {
+            // Status code
+            pw.print(("HTTP/1.1 400 Not Found\r\n"));
+            pw.print("\r\n");
+            // print
+            pw.print(("HTTP/1.1 400 Not Found\r\n"));
+            // Date
+            pw.print(("Date: " + dateTime.toString()));
+            pw.print("\r\n");
+            // Server
+            pw.print(("Server: " + server));
+            pw.print("\r\n");
+            // Content-Length
+            pw.print(("Content-Length: 0"));
+            pw.print("\r\n");
+            // Content-Type
+            pw.print(("Content-Type: text/html; charset=utf-8"));
+            pw.print("\r\n");
+            pw.flush();
+        } else if (resource.equals("/500")) {
+            // Status code
+            pw.print(("HTTP/1.1 500 Internal Server Error\r\n"));
+            pw.print("\r\n");
+            // print
+            pw.print(("HTTP/1.1 500 Internal Server Error\r\n"));
+            // Date
+            pw.print(("Date: " + dateTime.toString()));
+            pw.print("\r\n");
+            // Server
+            pw.print(("Server: " + server));
+            pw.print("\r\n");
+            // Content-Length
+            pw.print(("Content-Length: 0"));
+            pw.print("\r\n");
+            // Content-Type
+            pw.print(("Content-Type: text/html; charset=utf-8"));
+            pw.print("\r\n");
+            pw.flush();
+        } else if (resource.equals("/304")) {
+            // Status code
+            pw.print(("HTTP/1.1 200 OK\r\n"));
+            pw.print("\r\n");
+            // print
+            pw.print(("HTTP/1.1 304 Not Modified\r\n"));
+            // Date
+            pw.print(("Date: " + dateTime.toString()));
+            pw.print("\r\n");
+            // Server
+            pw.print(("Server: " + server));
+            pw.print("\r\n");
+            // Content-Length
+            pw.print(("Content-Length: 0"));
+            pw.print("\r\n");
+            // Content-Type
+            pw.print(("Content-Type: text/html; charset=utf-8"));
+            pw.print("\r\n");
+            pw.flush();
+        } else {
+            // Status code
+            pw.print(("HTTP/1.1 404 Not Found\r\n"));
+            pw.print("\r\n");
+            // print
+            pw.print(("HTTP/1.1 404 Not Found\r\n"));
+            // Date
+            pw.print(("Date: " + dateTime.toString()));
+            pw.print("\r\n");
+            // Server
+            pw.print(("Server: " + server));
+            pw.print("\r\n");
+            // Content-Length
+            pw.print(("Content-Length: 0"));
+            pw.print("\r\n");
+            // Content-Type
+            pw.print(("Content-Type: text/html; charset=utf-8"));
+            pw.print("\r\n");
+            pw.flush();
+        }
+    }
 }
