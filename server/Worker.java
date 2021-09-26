@@ -9,6 +9,7 @@ import java.util.concurrent.atomic.*;
 // * Current "run server" command: javac public_html/cgi-bin/RunScript.java;javac server/config/Configuration.java;javac server/Server.java;javac server/Worker.java;javac WebServer.java;java WebServer
 
 import server.config.Configuration;
+import server.config.HtAccess;
 import server.config.HttpdConfig;
 import server.config.MimeTypes;
 
@@ -16,20 +17,27 @@ public class Worker implements Runnable {
     final static String CRLF = "\r\n";
     private static String server = "Chau & Satumba";
     protected Socket socket;
+
+    // * Path objects
     private static String documentRoot;
     private static String logFile;
     private static String scriptAlias;
     private static String directoryIndex;
+    private static String extension;
+    private static String dirAlias = null;
+    private static String htAccessPath;
+
+    // * Config and Auth objects
     private static HttpdConfig httpdConfig;
     private static MimeTypes mimeTypes;
+    private static HtAccess htAccess;
+    private final AtomicBoolean running = new AtomicBoolean(false);
+
+    // * Header objects
     private static String contentType;
     private static int contentLength;
-    private static String extension;
     private static String lastModified;
-    private static String htAccess;
     private static String dateTime;
-    private static String dirAlias = null;
-    private final AtomicBoolean running = new AtomicBoolean(false);
 
     public Worker(Socket socket) {
         this.socket = socket;
@@ -141,37 +149,42 @@ public class Worker implements Runnable {
 
         // * If htaccess exists, get headers for auth
         // * Else, return 401 response
-        htAccess = httpdConfig.getAccessFileName();
+        htAccessPath = httpdConfig.getAccessFileName();
+        System.out.println("⏳ Checking if .htaccess exists...");
         if(htAccessExist()) {
-            // TODO
-            getAccessHeaders();
-            
-        } else {
-            PrintWriter pw = new PrintWriter(client.getOutputStream());
-            // Status code
-            pw.print(("HTTP/1.1 401 Unauthorized\r\n"));
-            pw.print("\r\n");
-            // Date
-            pw.print(("Date: " + dateTime));
-            pw.print("\r\n");
-            // Server
-            pw.print(("Server: " + server));
-            pw.print("\r\n");
-            pw.print(("WWW-Authenticate: Basic realm=\"Access to staging site\""));
-            pw.print("\r\n");
-            // Content-Length
-            pw.print(("Content-Length: " + contentLength));
-            pw.print("\r\n");
-            // Content-Type
-            pw.print(("Content-Type: text/html; charset=utf-8"));
-            pw.print("\r\n");
-            pw.flush();
-        }
+            System.out.println("✅ .htaccess exists!");
+            // TODO: Auth headers and username / password parsing
+            HtAccess htAccess = new HtAccess();
+            htAccess.read(htAccessPath);
+            if(!authHeadersExist("temp string")) {
+                PrintWriter pw = new PrintWriter(client.getOutputStream());
+                // Status code
+                pw.print(("HTTP/1.1 401 Unauthorized\r\n"));
+                pw.print("\r\n");
+                // Date
+                pw.print(("Date: " + dateTime));
+                pw.print("\r\n");
+                // Server
+                pw.print(("Server: " + server));
+                pw.print("\r\n");
+                pw.print(("WWW-Authenticate: Basic realm=\"Access to staging site\""));
+                pw.print("\r\n");
+                // Content-Length
+                pw.print(("Content-Length: " + contentLength));
+                pw.print("\r\n");
+                // Content-Type
+                pw.print(("Content-Type: text/html; charset=utf-8"));
+                pw.print("\r\n");
+                pw.flush();
+            } 
+        } 
 
         // * If the file exists, continue to check the request method (GET, POST, HEAD, etc.)
         // * Else, respond with a 400 response 
         // TODO: Put 404 response into its own method
+        System.out.println("⏳ Checking if the requested file exists...");
         if(fileExists(dirAlias)) {
+            System.out.println("✅ File exists!");
             checkRequestVerb(client, method, resource);
         } else {
             PrintWriter pw = new PrintWriter(client.getOutputStream());
@@ -197,6 +210,7 @@ public class Worker implements Runnable {
         }
     }
 
+    // * Check if file exists helper function
     private static boolean fileExists(String dirAlias) {
         File file = new File(dirAlias);
         if(file.exists()) {
@@ -206,7 +220,6 @@ public class Worker implements Runnable {
     }
 
     private static synchronized void checkRequestVerb(Socket client, String method, String resource) throws IOException {
-
         // * Switch on method
         switch (method) {
             case "GET":
@@ -494,14 +507,14 @@ public class Worker implements Runnable {
     }
 
     private static boolean htAccessExist() {
-        if(htAccess.length() != 0) {
+        if(htAccessPath.length() != 0) {
             return true;
         }
         return false;
     }
 
-    private static void getAccessHeaders() {
-
+    private static boolean authHeadersExist(String string) {
+        return true;
     }
 
     private void stopThread() {
