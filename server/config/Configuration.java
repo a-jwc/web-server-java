@@ -1,8 +1,6 @@
 package server.config;
 
 import java.io.*;
-import java.net.*;
-import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class Configuration {
@@ -28,11 +26,6 @@ public class Configuration {
             String directive[];
             
             while((line = br.readLine()) != null) {
-                // if(!line.startsWith("#") && !line.isBlank() && line.contains("lias")) {
-                //     directive = line.split(" ", 3);
-                //     String alias[] = {directive[1], directive[2]};
-                //     configMap.put(directive[0], alias);
-                // }
                 if(!line.startsWith("#") && !line.isBlank()) {
                     directive = line.split(" ", 3);
                     if(directive[0].contains("Alias")) {

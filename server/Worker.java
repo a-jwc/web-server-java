@@ -52,21 +52,22 @@ public class Worker implements Runnable {
     }
 
     private synchronized void proccessRequest() {
-        running.set(true);
+        running.set(true);        
         while (running.get()) {
             try {
+                // notify();
                 // System.out.println("Debug: got new message " + client.toString());
                 // * Read the request - listen to the messages; Bytes -> Chars
                 InputStreamReader isr = new InputStreamReader(this.socket.getInputStream());
-                // Reads text from char-input stream,
+                // * Reads text from char-input stream,
                 BufferedReader br = new BufferedReader(isr);
-                // Read the first request from the client
+                // * Read the first request from the client
                 StringBuilder request = new StringBuilder();
                 String line;
                 line = br.readLine();
                 int count = 0;
-                // while (line != null) {
-                while (!line.isEmpty()) {
+
+                while (line != null && !line.isEmpty()) {
                     request.append(line + "\r\n");
                     line = br.readLine();
                     count++;
@@ -77,6 +78,8 @@ public class Worker implements Runnable {
 
                 checkRequest(socket, request);
                 System.out.println("Thread count: " + Thread.activeCount());
+                Thread.yield();
+                // wait();
             } catch (IOException e) {
                 e.printStackTrace();
                 // stopThread();
@@ -85,7 +88,7 @@ public class Worker implements Runnable {
         }
     }
 
-    private static void checkRequest(Socket client, StringBuilder req) throws IOException {
+    private static synchronized void checkRequest(Socket client, StringBuilder req) throws IOException {
         String reqArr[] = req.toString().split("\\r?\\n", 10);
         // * Get the first line of the request; Get "resource" and "method" from first
         // line
@@ -121,8 +124,7 @@ public class Worker implements Runnable {
         }
     }
 
-    private static void getRequest(Socket client, String resource) throws IOException {
-        // * Compare the "resource" to our list of resources
+    private static synchronized void getRequest(Socket client, String resource) throws IOException {
         System.out.println("GET request resource from: " + resource);
 
         // * Create and format Date field
@@ -131,8 +133,8 @@ public class Worker implements Runnable {
         String dateTime = sdf.format(new Date());
 
         // * Get document roots and index from hash Map
-        Worker.documentRoot = httpdConfig.getDocumentRoot("DocumentRoot");
-        Worker.directoryIndex = httpdConfig.getDirectoryIndex();
+        documentRoot = httpdConfig.getDocumentRoot("DocumentRoot");
+        directoryIndex = httpdConfig.getDirectoryIndex();
 
         // * Get alias
         String dirAlias = null;
@@ -162,6 +164,7 @@ public class Worker implements Runnable {
         // * Else, return 401 response
         htAccess = httpdConfig.getAccessFileName();
         if(htAccessExist()) {
+            // TODO
             getAccessHeaders();
         } else {
             PrintWriter pw = new PrintWriter(client.getOutputStream());
@@ -191,6 +194,8 @@ public class Worker implements Runnable {
 
         // System.out.println("mimetypes: " + mimeTypes.getMap().entrySet());
         System.out.println("Socket object: " + client);
+
+        // * Compare the "resource" to our list of resources
         if (resource.equals("/")) {
             // Load the image from the filesystem
             String defaultIndex = documentRoot + "/" + directoryIndex;
