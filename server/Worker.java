@@ -258,9 +258,9 @@ public class Worker implements Runnable {
 
         // * Compare the "resource" to our list of resources
         if (resource.equals("/")) {            
-            String defaultIndex = documentRoot + "/" + directoryIndex;
+            String defaultIndex = documentRoot + resource + directoryIndex;
             System.out.println("default index: " + defaultIndex);
-            FileInputStream indexHTML = new FileInputStream(defaultIndex);
+            FileInputStream indexHTML = new FileInputStream(defaultIndex.toString());
             // FileInputStream indexHTML = new FileInputStream("./public_html/ab1/ab2/index.html");
             OutputStream clientOutput = client.getOutputStream();
             co_response_200(clientOutput, indexHTML);
