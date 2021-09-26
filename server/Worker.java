@@ -125,10 +125,12 @@ public class Worker implements Runnable {
         documentRoot = httpdConfig.getDocumentRoot("DocumentRoot");
         directoryIndex = httpdConfig.getDirectoryIndex();
 
-        // * Get alias
+        // * Check if aliased uri
         String tempAlias = "Alias " + resource;
         if(httpdConfig.getMap().containsKey(tempAlias)) {
             dirAlias = httpdConfig.getMap().get(tempAlias);
+        } else {
+            dirAlias = documentRoot + resource;
         }
 
         // * Check if requesting file
@@ -183,11 +185,12 @@ public class Worker implements Runnable {
         // * If the file exists, continue to check the request method (GET, POST, HEAD, etc.)
         // * Else, respond with a 400 response 
         // TODO: Put 404 response into its own method
-        System.out.println("⏳ Checking if the requested file exists...");
+        System.out.println("⏳ Checking if the requested file " + dirAlias + " exists...");
         if(fileExists(dirAlias)) {
             System.out.println("✅ File exists!");
             checkRequestVerb(client, method, resource);
         } else {
+            System.out.println("❌ File not found!");
             PrintWriter pw = new PrintWriter(client.getOutputStream());
 
             // Status code
