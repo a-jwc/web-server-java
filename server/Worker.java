@@ -2,6 +2,7 @@ package server;
 
 import java.io.*;
 import java.net.*;
+import java.text.SimpleDateFormat;
 import java.time.*;
 import java.util.*;
 // * Current "run server" command: javac public_html/cgi-bin/RunScript.java;javac server/config/Configuration.java;javac server/Server.java;javac server/Worker.java;javac WebServer.java;java WebServer
@@ -24,6 +25,7 @@ public class Worker implements Runnable {
     private static int contentLength;
     private static String extension;
     private static String lastModified;
+    private static String htAccess;
 
     public Worker(Socket socket) {
         this.socket = socket;
@@ -34,6 +36,7 @@ public class Worker implements Runnable {
         httpdConfig = new HttpdConfig(config.getConfigMap());
         // * Local access to the mime types via mimeTypes object
         mimeTypes = new MimeTypes(config.getMimeTypesMap());
+        contentLength = 0;
     }
 
     @Override
@@ -89,6 +92,7 @@ public class Worker implements Runnable {
         // httpdConfig.printAll();
         // String fifthLine = reqArr[4];
         String fifthLine = "null";
+        // * Switch on method
         switch (method) {
             case "GET":
                 getRequest(client, resource);
@@ -113,11 +117,16 @@ public class Worker implements Runnable {
     private static synchronized void getRequest(Socket client, String resource) throws IOException {
         // * Compare the "resource" to our list of resources
         System.out.println("GET request resource from: " + resource);
-        LocalDateTime dateTime = LocalDateTime.now();
+
+        // * Create and format Date field
+        String dateTimePattern = "EEE, d MMM yyyy HH:mm:ss z";
+        SimpleDateFormat sdf = new SimpleDateFormat(dateTimePattern);
+        String dateTime = sdf.format(new Date());
 
         // * Get document roots and index from hash Map
         Worker.documentRoot = httpdConfig.getDocumentRoot("DocumentRoot");
         Worker.directoryIndex = httpdConfig.getDirectoryIndex();
+
         // * Get alias
         String dirAlias = null;
         String tempAlias = "Alias " + resource;
@@ -125,6 +134,7 @@ public class Worker implements Runnable {
             dirAlias = httpdConfig.getMap().get(tempAlias);
         }
 
+        // * Check if requesting file
         // * Get the content type by looping through the set of keys which are string arrays that contain the extensions 
         if(resource.contains(".")) {
             extension = resource.substring(resource.lastIndexOf(".") + 1);
@@ -140,6 +150,34 @@ public class Worker implements Runnable {
             // * If the resource is not a file, append index.html to the end
             dirAlias = dirAlias + directoryIndex;
         }
+
+        // * If htaccess exists, get headers for auth
+        // * Else, return 401 response
+        htAccess = httpdConfig.getAccessFileName();
+        if(htAccessExist()) {
+            getAccessHeaders();
+        } else {
+            PrintWriter pw = new PrintWriter(client.getOutputStream());
+            // Status code
+            pw.print(("HTTP/1.1 401 Unauthorized\r\n"));
+            pw.print("\r\n");
+            // Date
+            pw.print(("Date: " + dateTime));
+            pw.print("\r\n");
+            // Server
+            pw.print(("Server: " + server));
+            pw.print("\r\n");
+            pw.print(("WWW-Authenticate: Basic realm=\"Access to staging site\""));
+            pw.print("\r\n");
+            // Content-Length
+            pw.print(("Content-Length: " + contentLength));
+            pw.print("\r\n");
+            // Content-Type
+            pw.print(("Content-Type: text/html; charset=utf-8"));
+            pw.print("\r\n");
+            pw.flush();
+        }
+        
         // System.out.println("Content type: " + contentType);                
 
         // Worker.scriptAlias = httpdConfig.getScriptAlias("scriptAlias");
@@ -165,11 +203,11 @@ public class Worker implements Runnable {
             clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
             clientOutput.write(("\r\n").getBytes());
             clientOutput.write(image.readAllBytes());
-            clientOutput.write(("Date: " + dateTime.toString() + "\r\n").getBytes());
+            clientOutput.write(("Date: " + dateTime + "\r\n").getBytes());
             // Server
             clientOutput.write(("Server: " + server + "\r\n").getBytes());
             // Content-Length
-            clientOutput.write(("Content-Length: 0" + "\r\n").getBytes());
+            clientOutput.write(("Content-Length: " + contentLength + "\r\n").getBytes());
             // Content-Type
             clientOutput.write(("Content-Type: " + contentType + "\r\n").getBytes());
             image.close();
@@ -215,7 +253,7 @@ public class Worker implements Runnable {
             pw.print(("Server: " + server));
             pw.print("\r\n");
             // Content-Length
-            pw.print(("Content-Length: 0"));
+            pw.print(("Content-Length: " + contentLength));
             pw.print("\r\n");
             // Content-Type
             pw.print(("Content-Type: text/html; charset=utf-8"));
@@ -236,7 +274,7 @@ public class Worker implements Runnable {
             pw.print(("Server: " + server));
             pw.print("\r\n");
             // Content-Length
-            pw.print(("Content-Length: 0"));
+            pw.print(("Content-Length: " + contentLength));
             pw.print("\r\n");
             // Content-Type
             pw.print(("Content-Type: " + contentType + "\r\n"));
@@ -257,7 +295,7 @@ public class Worker implements Runnable {
             pw.print(("Server: " + server));
             pw.print("\r\n");
             // Content-Length
-            pw.print(("Content-Length: 0"));
+            pw.print(("Content-Length: " + contentLength));
             pw.print("\r\n");
             // Content-Type
             pw.print(("Content-Type: " + contentType + "\r\n"));
@@ -281,7 +319,7 @@ public class Worker implements Runnable {
             pw.print(("Server: " + server));
             pw.print("\r\n");
             // Content-Length
-            pw.print(("Content-Length: 0"));
+            pw.print(("Content-Length: " + contentLength));
             pw.print("\r\n");
             // Content-Type
             pw.print(("Content-Type: " + contentType + "\r\n"));
@@ -304,7 +342,7 @@ public class Worker implements Runnable {
             // Server
             clientOutput.write(("Server: " + server + "\r\n").getBytes());
             // Content-Length
-            clientOutput.write(("Content-Length: 0" + "\r\n").getBytes());
+            clientOutput.write(("Content-Length: " + contentLength + "\r\n").getBytes());
             // Content-Type
             clientOutput.write(("Content-Type: text/html; charset=utf-8" + "\r\n").getBytes());
             clientOutput.write(indexHTML.readAllBytes());
@@ -320,7 +358,7 @@ public class Worker implements Runnable {
             pw.print(("Server: " + server));
             pw.print("\r\n");
             // Content-Length
-            pw.print(("Content-Length: 0"));
+            pw.print(("Content-Length: " + contentLength));
             pw.print("\r\n");
             // Content-Type
             pw.print(("Content-Type: text/html; charset=utf-8"));
@@ -336,7 +374,7 @@ public class Worker implements Runnable {
             pw.print(("Server: " + server));
             pw.print("\r\n");
             // Content-Length
-            pw.print(("Content-Length: 0"));
+            pw.print(("Content-Length: " + contentLength));
             pw.print("\r\n");
             // Content-Type
             pw.print(("Content-Type: text/html; charset=utf-8"));
@@ -352,7 +390,7 @@ public class Worker implements Runnable {
             pw.print(("Server: " + server));
             pw.print("\r\n");
             // Content-Length
-            pw.print(("Content-Length: 0"));
+            pw.print(("Content-Length: " + contentLength));
             pw.print("\r\n");
             // Content-Type
             pw.print(("Content-Type: text/html; charset=utf-8"));
@@ -417,10 +455,21 @@ public class Worker implements Runnable {
         // Server
         clientOutput.write(("Server: " + server + "\r\n").getBytes());
         // Content-Length
-        clientOutput.write(("Content-Length: 0" + "\r\n").getBytes());
+        clientOutput.write(("Content-Length: " + contentLength + "\r\n").getBytes());
         // Content-Type
         clientOutput.write(("Content-Type: text/html; charset=utf-8" + "\r\n").getBytes());
         clientOutput.flush();
+    }
+
+    private static boolean htAccessExist() {
+        if(htAccess.length() != 0) {
+            return true;    
+        }
+        return false;
+    }
+
+    private static void getAccessHeaders() {
+
     }
 
     // * Print functions
@@ -435,7 +484,7 @@ public class Worker implements Runnable {
         pw.print(("Server: " + server));
         pw.print("\r\n");
         // Content-Length
-        pw.print(("Content-Length: 0"));
+        pw.print(("Content-Length: " + contentLength));
         pw.print("\r\n");
         // Content-Type
         pw.print(("Content-Type: text/html; charset=utf-8"));

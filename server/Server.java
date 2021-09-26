@@ -21,7 +21,7 @@ public class Server {
     public void start() throws Exception {
         try (ServerSocket serverSocket = new ServerSocket(port)) {
             System.out.println("✨ Server started. \n" + "📭 Listening for messages on port " + port + "\n");
-            while (true) {
+            while (!serverSocket.isClosed()) {
                 try {
                     // * Wait for a connection request
                     // * There is some thread that is responsible for handling the request
