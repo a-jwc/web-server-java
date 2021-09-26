@@ -6,7 +6,11 @@ import java.text.SimpleDateFormat;
 import java.time.*;
 import java.util.*;
 import java.util.concurrent.atomic.*;
+import java.awt.image.BufferedImage;
+
 // * Current "run server" command: javac public_html/cgi-bin/RunScript.java;javac server/config/Configuration.java;javac server/Server.java;javac server/Worker.java;javac WebServer.java;java WebServer
+
+import javax.imageio.ImageIO;
 
 import server.config.Configuration;
 import server.config.HtAccess;
@@ -38,6 +42,9 @@ public class Worker implements Runnable {
     private static int contentLength;
     private static String lastModified;
     private static String dateTime;
+
+    // * Body Objects
+    private static String imgHtml;
 
     public Worker(Socket socket) {
         this.socket = socket;
@@ -279,12 +286,23 @@ public class Worker implements Runnable {
             // System.out.println("2: " + client);
         } else if (resource.contains("/image")) {
             // Load the image from the filesystem
-            // FileInputStream image = new FileInputStream("./public_html/images/sushi.jpg");
-            FileInputStream image = new FileInputStream(documentRoot + resource);
+            // FileInputStream image = new FileInputStream("./public_html/images/sushfi.jpg");
+            String imagePath = documentRoot + resource;
+            FileInputStream fis = new FileInputStream(imagePath);
+            BufferedImage bi = ImageIO.read(new File(imagePath));
             OutputStream clientOutput = client.getOutputStream();
-            co_response_200(clientOutput, image);
+            String fileName = resource.substring(resource.lastIndexOf(".") - resource.lastIndexOf("/") + 2);
+            
+            System.out.println("filename: " + fileName);
+            // URL url = new URL(imagePath);
+            
+            
+            byte[] buffer = new byte[2048];
+            String imgHtml = "<img src=\"" + imagePath + "\" />";
+            jpg_response_200(clientOutput, fis);
+
             clientOutput.flush();
-            image.close();
+            // image.close();
         } else if (resource.contains("/ab/")) {
             System.out.println("1: " + client);
             FileInputStream indexHTML = new FileInputStream(dirAlias);
@@ -559,7 +577,7 @@ public class Worker implements Runnable {
             clientOutput.write(("\r\n").getBytes());
             clientOutput.write(("Connection: Keep-Alive").getBytes());
             clientOutput.write(("\r\n").getBytes());
-            clientOutput.write(("Content-Type: " + contentType).getBytes());
+            clientOutput.write(("Content-Type: " + contentType + "; charset=utf-8").getBytes());
             clientOutput.write(("\r\n").getBytes());
             clientOutput.write(("Content-Language: en").getBytes());
             clientOutput.write(("\r\n").getBytes());
@@ -573,11 +591,39 @@ public class Worker implements Runnable {
             // clientOutput.write(("\r\n").getBytes());
             clientOutput.write(("\r\n").getBytes());
             clientOutput.write((fis).readAllBytes());
+            clientOutput.write(("\r\n").getBytes());
             clientOutput.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
+    private static void jpg_response_200(OutputStream clientOutput, FileInputStream fis) {
+        try {
+            
+            clientOutput.write(("HTTP/1.1 200 OK").getBytes());
+            clientOutput.write(("\r\n").getBytes());
+            clientOutput.write(("Date: " + dateTime).getBytes());
+            clientOutput.write(("\r\n").getBytes());
+            clientOutput.write(("Server: " + server).getBytes());
+            clientOutput.write(("\r\n").getBytes());
+            clientOutput.write(("Content-Length: " + fis.toString().getBytes().length).getBytes());
+            clientOutput.write(("\r\n").getBytes());
+            clientOutput.write(("Connection: Keep-Alive").getBytes());
+            clientOutput.write(("\r\n").getBytes());
+            clientOutput.write(("Content-Type: " + contentType + "; charset=utf-8").getBytes());
+            clientOutput.write(("\r\n").getBytes());
+            clientOutput.write(("Content-Language: en").getBytes());
+            clientOutput.write(("\r\n").getBytes());
+            clientOutput.write(("\r\n").getBytes());
+            clientOutput.write((fis).readAllBytes());
+            clientOutput.write(("\r\n").getBytes());
+            clientOutput.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     private static void printRequest(StringBuilder request) {
         System.out.println("--REQUEST--");
