@@ -4,10 +4,15 @@ import java.io.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class HtAccess {
-    private static ConcurrentHashMap<String, String> htAccessMap;
+    static ConcurrentHashMap<String, String> htAccessMap;
 
-    public HtAccess(String htAccessPath) {
+    public HtAccess() {
+        htAccessMap = new ConcurrentHashMap<>();
+    }
+
+    public void read(String htAccessPath) {
         // * Parse and put htAccess items in the hash map
+        System.out.println("⏳ Reading .htaccess...");
         try {
             FileInputStream fis = new FileInputStream(htAccessPath);
             DataInputStream dis = new DataInputStream(fis);
@@ -18,12 +23,11 @@ public class HtAccess {
             while((line = br.readLine()) != null) {
                 if(!line.startsWith("#") && !line.isBlank()) {
                     htArr = line.split("\\s+", 2);                    
-                    if(htArr.length == 2) {                        
-                        // System.out.println(mimeTypesMap.size() + " : " + mimeType[0] + " " + mimeType[1]);
+                    if(htArr.length == 2) {             
+                        // System.out.println(htAccessMap.size() + " : " + htArr[0] + " " + htArr[1]);
                         htAccessMap.put(htArr[0], htArr[1]);
-                        // System.out.println(Arrays.toString(mimeTypesMap.get(mimeType[0])));
-                        sb.append(line + "\r\n");
                     } 
+                    sb.append(line + "\r\n");
                 }
             }
             br.close();
@@ -32,9 +36,8 @@ public class HtAccess {
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
-            System.out.println("⌛ Successfully read in " + htAccessPath + "\n");
+            System.out.println("✅ Successfully read in " + htAccessPath + "\n");
         }
-
     }
 
     // * Get absolute path of .htpassword
