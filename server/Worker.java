@@ -635,7 +635,7 @@ public class Worker implements Runnable {
     }
 
     public static synchronized void send500Response(OutputStream clientOutput) throws IOException {
-        clientOutput.write(("HTTP/1.1 200 OK").getBytes());
+        clientOutput.write(("HTTP/1.1 500 Internal Server Error").getBytes());
         clientOutput.write(("\r\n").getBytes());
         clientOutput.write(("Date: " + dateTime).getBytes());
         clientOutput.write(("\r\n").getBytes());
