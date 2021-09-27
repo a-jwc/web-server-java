@@ -241,7 +241,7 @@ public class Worker implements Runnable {
             if(isScriptAlias()) {
                 execScript(client, reqArr);
             } else {
-                System.out.println("❌ File not found!");
+                System.out.println("checkRequestVerb");
                 // checkRequestVerb(client, method, resource);
             }
         } else {
