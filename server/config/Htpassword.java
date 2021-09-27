@@ -7,7 +7,7 @@ import java.security.MessageDigest;
 
 import java.io.IOException;
 
-public class Htpassword extends ConfigurationReader {
+public class Htpassword extends Configuration {
   private HashMap<String, String> passwords;
 
   public Htpassword( String filename ) throws IOException {
@@ -38,6 +38,7 @@ public class Htpassword extends ConfigurationReader {
     String[] tokens = credentials.split( ":" );
 
     // TODO: implement this
+    return true;
   }
 
   private boolean verifyPassword( String username, String password ) {
@@ -45,6 +46,7 @@ public class Htpassword extends ConfigurationReader {
     // in the password file (keyed by username)
     // TODO: implement this - note that the encryption step is provided as a
     // method, below
+    return true;
   }
 
   private String encryptClearPassword( String password ) {
