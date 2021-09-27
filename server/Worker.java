@@ -276,11 +276,10 @@ public class Worker implements Runnable {
             
             File indexHTML = new File(defaultIndex.toString());
             FileInputStream fis = new FileInputStream(indexHTML);
-            // BufferedReader br = new BufferedReader(indexHTML);
-
             // FileInputStream indexHTML = new FileInputStream("./public_html/ab1/ab2/index.html");
             OutputStream clientOutput = client.getOutputStream();
             contentLength = indexHTML.length();
+            // * Call 200 response method
             co_response_200(clientOutput, fis);
             // clientOutput.write(indexHTML.toString().getBytes());
             clientOutput.flush();
@@ -290,17 +289,18 @@ public class Worker implements Runnable {
             // FileInputStream image = new FileInputStream("./public_html/images/sushfi.jpg");
             String imagePath = documentRoot + resource;
             FileInputStream fis = new FileInputStream(imagePath);
-            BufferedImage bi = ImageIO.read(new File(imagePath));
+            File image = new File(imagePath);
             OutputStream clientOutput = client.getOutputStream();
             String fileName = resource.substring(resource.lastIndexOf(".") - resource.lastIndexOf("/") + 2);
             
             System.out.println("filename: " + fileName);
-            // URL url = new URL(imagePath);      
             
             byte[] buffer = new byte[2048];
             String imgHtml = "<img src=\"" + imagePath + "\" />";
+            contentLength = image.length();
+            
+            // * Call 200 response method
             jpg_response_200(clientOutput, fis);
-            clientOutput.write(fis.toString().getBytes());
             clientOutput.flush();
             // image.close();
         } else if (resource.contains("/ab/")) {
@@ -606,7 +606,7 @@ public class Worker implements Runnable {
             clientOutput.write(("\r\n").getBytes());
             clientOutput.write(("Server: " + server).getBytes());
             clientOutput.write(("\r\n").getBytes());
-            clientOutput.write(("Content-Length: " + fis.toString().getBytes().length).getBytes());
+            clientOutput.write(("Content-Length: " + contentLength).getBytes());
             clientOutput.write(("\r\n").getBytes());
             clientOutput.write(("Connection: Keep-Alive").getBytes());
             clientOutput.write(("\r\n").getBytes());
