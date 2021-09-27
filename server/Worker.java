@@ -212,6 +212,7 @@ public class Worker implements Runnable {
         // * If the file exists, continue to check the request method (GET, POST, HEAD, etc.)
         // * Else, respond with a 400 response 
         // TODO: Put 404 response into its own method
+        // TODO: FNFExcept - resource: /ab/images/sushi.jpg; ! add 404 response for this case
         System.out.println("⏳ Checking if the requested file " + dirAlias + " exists...");
         if(fileExists(dirAlias)) {
             System.out.println("✅ File exists!");
@@ -310,15 +311,11 @@ public class Worker implements Runnable {
             File image = new File(imagePath);
             OutputStream clientOutput = client.getOutputStream();
             String fileName = resource.substring(resource.lastIndexOf(".") - resource.lastIndexOf("/") + 2);
-            
             System.out.println("filename: " + fileName);
-            
-            byte[] buffer = new byte[2048];
-            String imgHtml = "<img src=\"" + imagePath + "\" />";
             contentLength = image.length();
 
             // * Call 200 response method
-            jpg_response_200(clientOutput, fis);
+            co_response_200(clientOutput, fis);
             clientOutput.flush();
             // image.close();
         } else if (resource.contains("/ab/")) {
@@ -348,54 +345,8 @@ public class Worker implements Runnable {
             clientOutput.write(indexHTML.readAllBytes());
             indexHTML.close();
             clientOutput.flush();
-        } else if (resource.equals("/500")) {
-            PrintWriter pw = new PrintWriter(client.getOutputStream());
-
-            // Status code
-            pw.print(("HTTP/1.1 500 Internal Server Error\r\n"));
-            pw.print("\r\n");
-            // print
-            pw.print(("HTTP/1.1 500 Internal Server Error\r\n"));
-            // Date
-            pw.print(("Date: " + dateTime.toString()));
-            pw.print("\r\n");
-            // Server
-            pw.print(("Server: " + server));
-            pw.print("\r\n");
-            // Content-Length
-            pw.print(("Content-Length: " + contentLength));
-            pw.print("\r\n");
-            // Content-Type
-            pw.print(("Content-Type: " + contentType + "\r\n"));
-            pw.print("\r\n");
-            pw.flush();
-        } else if (resource.equals("/304")) {
-            PrintWriter pw = new PrintWriter(client.getOutputStream());
-
-            // Status code
-            pw.print(("HTTP/1.1 200 OK\r\n"));
-            pw.print("\r\n");
-            // print
-            pw.print(("HTTP/1.1 304 Not Modified\r\n"));
-            // Date
-            pw.print(("Date: " + dateTime.toString()));
-            pw.print("\r\n");
-            // Server
-            pw.print(("Server: " + server));
-            pw.print("\r\n");
-            // Content-Length
-            pw.print(("Content-Length: " + contentLength));
-            pw.print("\r\n");
-            // Content-Type
-            pw.print(("Content-Type: " + contentType + "\r\n"));
-            pw.print("\r\n");
-            // Last-modified
-            pw.print(("Last-Modified: " + lastModified + "\r\n"));
-            pw.print("\r\n");
-            pw.flush();
         } else {
             PrintWriter pw = new PrintWriter(client.getOutputStream());
-
             // Status code
             pw.print(("HTTP/1.1 404 Not Found\r\n"));
             pw.print("\r\n");
@@ -416,6 +367,9 @@ public class Worker implements Runnable {
             pw.flush();
         }
     }
+    // ! pw.print(("HTTP/1.1 500 Internal Server Error\r\n"));
+    // ! pw.print(("HTTP/1.1 304 Not Modified\r\n"));
+
 
     private static void headRequest(Socket client, String resource) throws IOException {
         System.out.println("HEAD request resource from: " + resource);

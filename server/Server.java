@@ -22,7 +22,8 @@ public class Server {
         port = Integer.parseInt(config.getConfigMap().get("Listen"));
         serverSocket = null;    
         // * Initialize the threadpool with 10 threads
-        threadPool = Executors.newFixedThreadPool(10);
+        // threadPool = Executors.newFixedThreadPool(10);
+        threadPool = Executors.newCachedThreadPool();
     }
 
     public void start() throws IOException {            
