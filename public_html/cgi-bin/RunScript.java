@@ -1,17 +1,19 @@
+package public_html.cgi-bin;
+
 import java.io.*;
 import java.lang.ProcessBuilder.Redirect;
 import java.util.*;
 
 public class RunScript {
+    private static Map<String, String> env;
     public static void main(String[] args) {
         // * Replace with ScriptAlias path or your path for testing
         // * /web-server/public_html/cgi-bin/perl_env
         String pathToScript = "/home/ajwc/SFSU/CSC667/Assignments/web-server/public_html/cgi-bin/perl_env";
         ProcessBuilder pb = new ProcessBuilder(pathToScript);
-        
         try {
             // * Place the environment variables in a map
-            Map<String, String> env = pb.environment();
+            env = pb.environment();
             // * Print the env variables to stdout
             env.forEach((key, value) -> System.out.println(key + value));
             
