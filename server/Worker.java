@@ -72,9 +72,9 @@ public class Worker implements Runnable {
             e.printStackTrace();
         }
     }
-    
+
     private synchronized void proccessRequest() {
-        running.set(true);        
+        running.set(true);
         while (running.get()) {
             try {
                 // notify();
@@ -98,14 +98,14 @@ public class Worker implements Runnable {
                 }
 
                 printRequest(request);
-                parseResource(socket, request);    
+                parseResource(socket, request);
 
                 if(request != null && request.toString().length() != 0) {
 
                 }
                 System.out.println("Thread count: " + Thread.activeCount());
                 System.out.println("Thread " + Thread.currentThread() + " is currently ");
-                
+
                 Thread.yield();
                 // stopThread();
                 // wait();
@@ -116,7 +116,7 @@ public class Worker implements Runnable {
         }
     }
 
-    private static synchronized void parseResource(Socket client, StringBuilder req) throws IOException {
+    public static synchronized void parseResource(Socket client, StringBuilder req) throws IOException {
         String reqArr[] = req.toString().split("\\r?\\n", 10);
         // * Get the first line of the request; Get "resource" and "method" from first line
         String firstLine = reqArr[0];
@@ -125,13 +125,35 @@ public class Worker implements Runnable {
         String requestLine[] = firstLine.split(" ", 0);
         String method = requestLine[0];
         String resource = requestLine[1];
+
         // httpdConfig.printAll();
-        // String fifthLine = reqArr[4];
+
+        String fifthLine = reqArr[4];
 
         // * Create and format Date field
         String dateTimePattern = "EEE, d MMM yyyy HH:mm:ss z";
         SimpleDateFormat sdf = new SimpleDateFormat(dateTimePattern);
         dateTime = sdf.format(new Date());
+
+        switch (method) {
+                case "GET":
+                    getRequest(client, resource);
+                    break;
+                case "HEAD":
+                    headRequest(client, resource);
+                    break;
+                case "POST":
+                    String sixthLine = reqArr[5];
+                    postRequest(client, resource, fifthLine, sixthLine);
+                    break;
+                case "PUT":
+                    String sixthLines = reqArr[5];
+                    putRequest(client, resource, fifthLine, sixthLines);
+                    break;
+                case "DELETE":
+                    deleteRequest(client, resource);
+                    break;
+            }
 
         // * Get document roots and index from hash Map
         documentRoot = httpdConfig.getDocumentRoot("DocumentRoot");
@@ -206,11 +228,11 @@ public class Worker implements Runnable {
                 pw.print(("Content-Type: text/html; charset=utf-8"));
                 pw.print("\r\n");
                 pw.flush();
-            } 
-        } 
+            }
+        }
 
         // * If the file exists, continue to check the request method (GET, POST, HEAD, etc.)
-        // * Else, respond with a 400 response 
+        // * Else, respond with a 400 response
         // TODO: Put 404 response into its own method
         // TODO: FNFExcept - resource: /ab/images/sushi.jpg; !solution: add 404 response for this case
         System.out.println("⏳ Checking if the requested file " + dirAlias + " exists...");
@@ -219,30 +241,30 @@ public class Worker implements Runnable {
             if(isScriptAlias()) {
                 execScript(client, reqArr);
             } else {
-                checkRequestVerb(client, method, resource);
+                System.out.println("checkRequestVerb");
+                // checkRequestVerb(client, method, resource);
             }
         } else {
             System.out.println("❌ File not found!");
-            PrintWriter pw = new PrintWriter(client.getOutputStream());
-
-            // Status code
-            pw.print(("HTTP/1.1 404 Not Found\r\n"));
-            pw.print("\r\n");
-            // print
-            pw.print(("HTTP/1.1 404 Not Found\r\n"));
-            // Date
-            pw.print(("Date: " + dateTime.toString()));
-            pw.print("\r\n");
-            // Server
-            pw.print(("Server: " + server));
-            pw.print("\r\n");
-            // Content-Length
-            pw.print(("Content-Length: " + contentLength));
-            pw.print("\r\n");
-            // Content-Type
-            pw.print(("Content-Type: " + contentType + "\r\n"));
-            pw.print("\r\n");
-            pw.flush();
+            // PrintWriter pw = new PrintWriter(client.getOutputStream());
+            //
+            // // Status code
+            // pw.print(("HTTP/1.1 404 Not Found\r\n"));
+            // // print
+            // pw.print(("HTTP/1.1 404 Not Found\r\n"));
+            // // Date
+            // pw.print(("Date: " + dateTime.toString()));
+            // pw.print("\r\n");
+            // // Server
+            // pw.print(("Server: " + server));
+            // pw.print("\r\n");
+            // // Content-Length
+            // pw.print(("Content-Length: " + contentLength));
+            // pw.print("\r\n");
+            // // Content-Type
+            // pw.print(("Content-Type: " + contentType + "\r\n"));
+            // pw.print("\r\n");
+            // pw.flush();
         }
     }
 
@@ -282,6 +304,7 @@ public class Worker implements Runnable {
 
     private static synchronized void getRequest(Socket client, String resource) throws IOException {
         System.out.println("GET request resource from: " + resource);
+        PrintWriter pw = new PrintWriter(client.getOutputStream());
 
         // System.out.println("Content type: " + contentType);
 
@@ -291,10 +314,10 @@ public class Worker implements Runnable {
         System.out.println("Socket object: " + client);
         System.out.println("resource: " + resource);
         // * Compare the "resource" to our list of resources
-        if (resource.equals("/")) {            
+        if (resource.equals("/")) {
             String defaultIndex = documentRoot + resource + directoryIndex;
             System.out.println("default index: " + defaultIndex);
-            
+
             File indexHTML = new File(defaultIndex.toString());
             FileInputStream fis = new FileInputStream(indexHTML);
             // FileInputStream indexHTML = new FileInputStream("./public_html/ab1/ab2/index.html");
@@ -491,7 +514,7 @@ public class Worker implements Runnable {
     }
 
 
-    // * Helper functions    
+    // * Helper functions
     private static synchronized boolean htAccessExist() {
         if(htAccessPath.length() != 0) {
             return true;
