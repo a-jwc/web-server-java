@@ -16,6 +16,7 @@ import server.config.Configuration;
 import server.config.HtAccess;
 import server.config.HttpdConfig;
 import server.config.MimeTypes;
+import public_html.cgi-bin;
 
 public class Worker implements Runnable {
     final static String CRLF = "\r\n";
@@ -30,6 +31,7 @@ public class Worker implements Runnable {
     private static String extension;
     private static String dirAlias = null;
     private static String htAccessPath;
+    private static String scriptName;
 
     // * Config and Auth objects
     private static HttpdConfig httpdConfig;
@@ -56,7 +58,8 @@ public class Worker implements Runnable {
         // * Local access to the mime types via mimeTypes object
         mimeTypes = new MimeTypes(config.getMimeTypesMap());
         contentLength = 0;
-        
+        scriptAlias = null;
+        scriptName = null;
     }
 
     @Override
@@ -83,6 +86,8 @@ public class Worker implements Runnable {
                 // * Read the first request from the client
                 StringBuilder request = new StringBuilder();
                 String line;
+
+                // TODO: Causes java.net.SocketException: Connection reset
                 line = br.readLine();
                 int count = 0;
 
@@ -120,7 +125,7 @@ public class Worker implements Runnable {
         String requestLine[] = firstLine.split(" ", 0);
         String method = requestLine[0];
         String resource = requestLine[1];
-        // httpdConfig.printAll();
+        httpdConfig.printAll();
         // String fifthLine = reqArr[4];
 
         // * Create and format Date field
@@ -137,9 +142,12 @@ public class Worker implements Runnable {
         if(httpdConfig.getMap().containsKey(tempAlias)) {
             dirAlias = httpdConfig.getMap().get(tempAlias);
         } else if(resource.contains("/ab/")) {
-            dirAlias = httpdConfig.getMap().get("/ab/");
+            dirAlias = httpdConfig.getMap().get("Alias /ab/");
         } else if(resource.contains("/~traciely/")) {
-            dirAlias = httpdConfig.getMap().get("/~traciely/");
+            dirAlias = httpdConfig.getMap().get("Alias /~traciely/");
+        } else if(resource.contains("/cgi-bin/")) {
+            dirAlias = httpdConfig.getMap().get("ScriptAlias /cgi-bin/");
+            scriptAlias = dirAlias;
         } else {
             dirAlias = documentRoot + resource;
         }
@@ -156,6 +164,12 @@ public class Worker implements Runnable {
                     }
                 }
             }
+        } else if(resource.contains("cgi-bin")) {
+            scriptName = resource.substring(resource.lastIndexOf("/") + 1);
+            System.out.println("scriptName: " + scriptName);
+            dirAlias = dirAlias + scriptName;
+            System.out.println("📜 Script detected for resource " + resource);
+            System.out.println("dirAlias: " + dirAlias);
         } else {
             // * If the resource is not a file, append index.html to the end
             dirAlias = dirAlias + directoryIndex;
@@ -201,7 +215,11 @@ public class Worker implements Runnable {
         System.out.println("⏳ Checking if the requested file " + dirAlias + " exists...");
         if(fileExists(dirAlias)) {
             System.out.println("✅ File exists!");
-            checkRequestVerb(client, method, resource);
+            if(isScriptAlias()) {
+                execScript(client);
+            } else {
+                checkRequestVerb(client, method, resource);
+            }
         } else {
             System.out.println("❌ File not found!");
             PrintWriter pw = new PrintWriter(client.getOutputStream());
@@ -298,27 +316,29 @@ public class Worker implements Runnable {
             byte[] buffer = new byte[2048];
             String imgHtml = "<img src=\"" + imagePath + "\" />";
             contentLength = image.length();
-            
+
             // * Call 200 response method
             jpg_response_200(clientOutput, fis);
             clientOutput.flush();
             // image.close();
         } else if (resource.contains("/ab/")) {
             System.out.println("1: " + client);
-            FileInputStream indexHTML = new FileInputStream(dirAlias);
+            File indexHTML = new File(dirAlias.toString());
+            FileInputStream fis = new FileInputStream(indexHTML);
             OutputStream clientOutput = client.getOutputStream();
-            clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
-            clientOutput.write(("\r\n").getBytes());
-            clientOutput.write(indexHTML.readAllBytes());
-            indexHTML.close();
+            contentLength = indexHTML.length();
+
+            co_response_200(clientOutput, fis);
+
             clientOutput.flush();
         } else if (resource.contains("/~traciely/")) {
-            FileInputStream indexHTML = new FileInputStream(dirAlias);
+            File indexHTML = new File(dirAlias.toString());
+            FileInputStream fis = new FileInputStream(indexHTML);
             OutputStream clientOutput = client.getOutputStream();
-            clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
-            clientOutput.write(("\r\n").getBytes());
-            clientOutput.write(indexHTML.readAllBytes());
-            indexHTML.close();
+            contentLength = indexHTML.length();
+            // * Call 200 response method
+            co_response_200(clientOutput, fis);
+
             clientOutput.flush();
         } else if (resource.equals("/cgi-bin/")) {
             System.out.println("1: " + client);
@@ -531,8 +551,40 @@ public class Worker implements Runnable {
         clientOutput.flush();
     }
 
+
+    // * Helper functions    
     private static boolean htAccessExist() {
         if(htAccessPath.length() != 0) {
+            return true;
+        }
+        return false;
+    }
+
+    // * Execute scipt method
+    private static void execScript(Socket client) {
+        System.out.println("🔨 Execute Script...");
+        try {
+            FileInputStream indexHTML = new FileInputStream(dirAlias);
+            OutputStream clientOutput = client.getOutputStream();
+            clientOutput.write(("HTTP/1.1 200 OK").getBytes());
+            // clientOutput.write(("\r\n").getBytes());
+            clientOutput.write(("Date: " + dateTime).getBytes());
+            // clientOutput.write(("\r\n").getBytes());
+            clientOutput.write(("Server: " + server).getBytes());
+            // clientOutput.write(("\r\n").getBytes());
+            // clientOutput.write(("\r\n").getBytes());
+            clientOutput.write(indexHTML.readAllBytes());
+            // clientOutput.write(("\r\n").getBytes());
+            RunScipt rs = new RunScript();
+            indexHTML.close();
+            clientOutput.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static boolean isScriptAlias() {
+        if(scriptAlias != null) {
             return true;
         }
         return false;
@@ -577,7 +629,7 @@ public class Worker implements Runnable {
             clientOutput.write(("\r\n").getBytes());
             clientOutput.write(("Connection: Keep-Alive").getBytes());
             clientOutput.write(("\r\n").getBytes());
-            clientOutput.write(("Content-Type: " + contentType).getBytes());
+            clientOutput.write(("Content-Type: " + contentType + "; charset=utf-8").getBytes());
             clientOutput.write(("\r\n").getBytes());
             clientOutput.write(("Content-Language: en").getBytes());
             clientOutput.write(("\r\n").getBytes());
@@ -587,8 +639,8 @@ public class Worker implements Runnable {
             // clientOutput.write(("\r\n").getBytes());
             // clientOutput.write(("Keep-Alive: timeout=5, max=999").getBytes());
             // clientOutput.write(("\r\n").getBytes());
-            // clientOutput.write(("Vary: Accept-Encoding").getBytes());
-            // clientOutput.write(("\r\n").getBytes());
+            clientOutput.write(("Vary: Accept-Encoding").getBytes());
+            clientOutput.write(("\r\n").getBytes());
             clientOutput.write(("\r\n").getBytes());
             clientOutput.write((fis).readAllBytes());
             clientOutput.write(("\r\n").getBytes());
