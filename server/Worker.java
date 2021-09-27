@@ -135,26 +135,6 @@ public class Worker implements Runnable {
         SimpleDateFormat sdf = new SimpleDateFormat(dateTimePattern);
         dateTime = sdf.format(new Date());
 
-        switch (method) {
-                case "GET":
-                    getRequest(client, resource);
-                    break;
-                case "HEAD":
-                    headRequest(client, resource);
-                    break;
-                case "POST":
-                    String sixthLine = reqArr[5];
-                    postRequest(client, resource, fifthLine, sixthLine);
-                    break;
-                case "PUT":
-                    String sixthLines = reqArr[5];
-                    putRequest(client, resource, fifthLine, sixthLines);
-                    break;
-                case "DELETE":
-                    deleteRequest(client, resource);
-                    break;
-            }
-
         // * Get document roots and index from hash Map
         documentRoot = httpdConfig.getDocumentRoot("DocumentRoot");
         directoryIndex = httpdConfig.getDirectoryIndex();
@@ -242,7 +222,7 @@ public class Worker implements Runnable {
                 execScript(client, reqArr);
             } else {
                 System.out.println("checkRequestVerb");
-                // checkRequestVerb(client, method, resource);
+                checkRequestVerb(client, method, resource);
             }
         } else {
             System.out.println("❌ File not found!");
@@ -298,7 +278,8 @@ public class Worker implements Runnable {
                 deleteRequest(client, resource);
                 break;
             default:
-
+                OutputStream clientOutput = client.getOutputStream();
+                send500Response(clientOutput);
         }
     }
 
