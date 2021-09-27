@@ -275,6 +275,8 @@ public class Worker implements Runnable {
             case "DELETE":
                 deleteRequest(client, resource);
                 break;
+            default:
+
         }
     }
 
@@ -346,25 +348,9 @@ public class Worker implements Runnable {
             indexHTML.close();
             clientOutput.flush();
         } else {
-            PrintWriter pw = new PrintWriter(client.getOutputStream());
-            // Status code
-            pw.print(("HTTP/1.1 404 Not Found\r\n"));
-            pw.print("\r\n");
-            // print
-            pw.print(("HTTP/1.1 404 Not Found\r\n"));
-            // Date
-            pw.print(("Date: " + dateTime.toString()));
-            pw.print("\r\n");
-            // Server
-            pw.print(("Server: " + server));
-            pw.print("\r\n");
-            // Content-Length
-            pw.print(("Content-Length: " + contentLength));
-            pw.print("\r\n");
-            // Content-Type
-            pw.print(("Content-Type: " + contentType + "\r\n"));
-            pw.print("\r\n");
-            pw.flush();
+            OutputStream clientOutput = client.getOutputStream();
+            send500Response(clientOutput);
+            clientOutput.flush();
         }
     }
     // ! pw.print(("HTTP/1.1 500 Internal Server Error\r\n"));
@@ -642,5 +628,15 @@ public class Worker implements Runnable {
         writer.write("Server: itsmejrob\r\n");
         writer.write("WW-Authenticate: Basic\r\n");
         writer.flush();
+    }
+
+    public static synchronized void send500Response(OutputStream clientOutput) throws IOException {
+        clientOutput.write(("HTTP/1.1 200 OK").getBytes());
+        clientOutput.write(("\r\n").getBytes());
+        clientOutput.write(("Date: " + dateTime).getBytes());
+        clientOutput.write(("\r\n").getBytes());
+        clientOutput.write(("Server: " + server).getBytes());
+        clientOutput.write(("\r\n").getBytes());
+        clientOutput.flush();
     }
 }
