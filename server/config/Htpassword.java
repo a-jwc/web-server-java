@@ -6,6 +6,8 @@ import java.nio.charset.Charset;
 import java.security.MessageDigest;
 
 import java.io.IOException;
+import java.io.*;
+import java.util.*;
 
 public class Htpassword extends Configuration {
   private HashMap<String, String> passwords;
@@ -34,19 +36,36 @@ public class Htpassword extends Configuration {
       Charset.forName( "UTF-8" )
     );
 
-    // The string is the key:value pair username:password
-    String[] tokens = credentials.split( ":" );
-
-    // TODO: implement this
-    return true;
+    // * Parse and put htAccess items in the hash map
+    System.out.println("⏳ Loading file...");
+    try {
+        FileInputStream fis = new FileInputStream(getHtpwdFile());
+        DataInputStream dis = new DataInputStream(fis);
+        BufferedReader br = new BufferedReader(new InputStreamReader(dis));
+        String line;
+        while((line = br.readLine()) != null) {
+          parseLine(line);
+        }
+        br.close();
+        dis.close();
+        fis.close();
+    } catch (IOException e) {
+        e.printStackTrace();
+    } finally {
+        System.out.println("✅ Successfully read in " + getHtpwdFile() + "\n");
+        return true;
+    }
   }
 
   private boolean verifyPassword( String username, String password ) {
     // encrypt the password, and compare it to the password stored
     // in the password file (keyed by username)
-    // TODO: implement this - note that the encryption step is provided as a
-    // method, below
-    return true;
+    // TODO: implement this - note that the encryption step is provided as a method, below
+    String encPwd = encryptClearPassword(password);
+    if(encPwd == passwords.get(username)) {
+      return true;
+    }
+    return false;
   }
 
   private String encryptClearPassword( String password ) {
