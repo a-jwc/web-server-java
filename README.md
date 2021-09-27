@@ -10,3 +10,10 @@
 - [ ] 6. Support simple authentication - AC
 - [ ] 7. Support simple caching - MS
 - [ ] 8. Logging - MS
+
+## Run
+
+```
+// TODO: Simplify to javac WebServer.java;java WebServer
+javac public_html/RunScript.java;javac server/config/Configuration.java;javac server/config/HtAccess.java;javac server/Server.java;javac server/Worker.java;javac WebServer.java;java WebServer
+```
