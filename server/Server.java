@@ -10,11 +10,12 @@ public class Server {
     private static int port;
     ServerSocket serverSocket;
     ExecutorService threadPool;
+    String httpd_alex = "conf/httpd_alex.conf";
 
     public Server() {
         // * Instantiate new Configuration object and sets config private members with
-        // conf file paths
-        Configuration config = new Configuration("conf/httpd.conf", "conf/mime.types");
+        // * conf file paths
+        Configuration config = new Configuration(httpd_alex, "conf/mime.types");
         // * Parse httpd.conf file into hash Map
         config.readHttpdConfig();
         // * Get the "Listen" directive from the hash Map member as the listening port

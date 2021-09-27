@@ -129,6 +129,10 @@ public class Worker implements Runnable {
         String tempAlias = "Alias " + resource;
         if(httpdConfig.getMap().containsKey(tempAlias)) {
             dirAlias = httpdConfig.getMap().get(tempAlias);
+        } else if(resource.contains("/ab/")) {
+            dirAlias = httpdConfig.getMap().get("/ab/");
+        } else if(resource.contains("/~traciely/")) {
+            dirAlias = httpdConfig.getMap().get("/~traciely/");
         } else {
             dirAlias = documentRoot + resource;
         }
@@ -148,6 +152,8 @@ public class Worker implements Runnable {
         } else {
             // * If the resource is not a file, append index.html to the end
             dirAlias = dirAlias + directoryIndex;
+            String[] tempArr = {"html", "htm"};
+            contentType = "text/html";
         }
 
         // * If htaccess exists, get headers for auth
@@ -255,34 +261,31 @@ public class Worker implements Runnable {
 
         // System.out.println("mimetypes: " + mimeTypes.getMap().entrySet());
         System.out.println("Socket object: " + client);
-
+        System.out.println("resource: " + resource);
         // * Compare the "resource" to our list of resources
         if (resource.equals("/")) {            
             String defaultIndex = documentRoot + resource + directoryIndex;
             System.out.println("default index: " + defaultIndex);
-            FileInputStream indexHTML = new FileInputStream(defaultIndex.toString());
+            
+            File indexHTML = new File(defaultIndex.toString());
+            FileInputStream fis = new FileInputStream(indexHTML);
+            // BufferedReader br = new BufferedReader(indexHTML);
+
             // FileInputStream indexHTML = new FileInputStream("./public_html/ab1/ab2/index.html");
             OutputStream clientOutput = client.getOutputStream();
-            co_response_200(clientOutput, indexHTML);
+            co_response_200(clientOutput, fis);
+            clientOutput.write(indexHTML.toString().getBytes());
+            clientOutput.flush();
             // System.out.println("2: " + client);
         } else if (resource.contains("/image")) {
             // Load the image from the filesystem
             // FileInputStream image = new FileInputStream("./public_html/images/sushi.jpg");
             FileInputStream image = new FileInputStream(documentRoot + resource);
             OutputStream clientOutput = client.getOutputStream();
-            clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
-            clientOutput.write(("\r\n").getBytes());
-            clientOutput.write(image.readAllBytes());
-            clientOutput.write(("Date: " + dateTime + "\r\n").getBytes());
-            // Server
-            clientOutput.write(("Server: " + server + "\r\n").getBytes());
-            // Content-Length
-            clientOutput.write(("Content-Length: " + contentLength + "\r\n").getBytes());
-            // Content-Type
-            clientOutput.write(("Content-Type: " + contentType + "\r\n").getBytes());
-            image.close();
+            co_response_200(clientOutput, image);
             clientOutput.flush();
-        } else if (resource.equals("/ab/")) {
+            image.close();
+        } else if (resource.contains("/ab/")) {
             System.out.println("1: " + client);
             FileInputStream indexHTML = new FileInputStream(dirAlias);
             OutputStream clientOutput = client.getOutputStream();
@@ -291,7 +294,7 @@ public class Worker implements Runnable {
             clientOutput.write(indexHTML.readAllBytes());
             indexHTML.close();
             clientOutput.flush();
-        } else if (resource.equals("/~traciely/")) {
+        } else if (resource.contains("/~traciely/")) {
             FileInputStream indexHTML = new FileInputStream(dirAlias);
             OutputStream clientOutput = client.getOutputStream();
             clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
@@ -544,11 +547,15 @@ public class Worker implements Runnable {
         pw.print("\r\n");
     }
 
-    private static void co_response_200(OutputStream clientOutput, FileInputStream indexHTML) {
+    private static void co_response_200(OutputStream clientOutput, FileInputStream fis) {
         try {
             clientOutput.write(("HTTP/1.1 200 OK").getBytes());
             clientOutput.write(("\r\n").getBytes());
+            clientOutput.write(("Date: " + dateTime).getBytes());
+            clientOutput.write(("\r\n").getBytes());
             clientOutput.write(("Server: " + server).getBytes());
+            clientOutput.write(("\r\n").getBytes());
+            clientOutput.write(("Content-Length: " + fis.toString().getBytes().length).getBytes());
             clientOutput.write(("\r\n").getBytes());
             clientOutput.write(("Connection: Keep-Alive").getBytes());
             clientOutput.write(("\r\n").getBytes());
@@ -560,13 +567,12 @@ public class Worker implements Runnable {
             // clientOutput.write(("\r\n").getBytes());
             // clientOutput.write(("Content-Encoding: gzip").getBytes());
             // clientOutput.write(("\r\n").getBytes());
-            clientOutput.write(("Keep-Alive: timeout=5, max=999").getBytes());
+            // clientOutput.write(("Keep-Alive: timeout=5, max=999").getBytes());
+            // clientOutput.write(("\r\n").getBytes());
+            // clientOutput.write(("Vary: Accept-Encoding").getBytes());
+            // clientOutput.write(("\r\n").getBytes());
             clientOutput.write(("\r\n").getBytes());
-            clientOutput.write(("Vary: Accept-Encoding").getBytes());
-            clientOutput.write(("\r\n").getBytes());
-            clientOutput.write(("\r\n").getBytes());
-            clientOutput.write(indexHTML.readAllBytes());
-            indexHTML.close();
+            clientOutput.write((fis).readAllBytes());
             clientOutput.flush();
         } catch (IOException e) {
             e.printStackTrace();
