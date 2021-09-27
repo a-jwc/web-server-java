@@ -300,7 +300,7 @@ public class Worker implements Runnable {
             byte[] buffer = new byte[2048];
             String imgHtml = "<img src=\"" + imagePath + "\" />";
             jpg_response_200(clientOutput, fis);
-
+            fis.close();
             clientOutput.flush();
             // image.close();
         } else if (resource.contains("/ab/")) {
@@ -592,7 +592,6 @@ public class Worker implements Runnable {
             clientOutput.write(("\r\n").getBytes());
             clientOutput.write((fis).readAllBytes());
             clientOutput.write(("\r\n").getBytes());
-            clientOutput.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -618,7 +617,7 @@ public class Worker implements Runnable {
             clientOutput.write(("\r\n").getBytes());
             clientOutput.write((fis).readAllBytes());
             clientOutput.write(("\r\n").getBytes());
-            clientOutput.flush();
+            clientOutput.flush();            
         } catch (IOException e) {
             e.printStackTrace();
         }
