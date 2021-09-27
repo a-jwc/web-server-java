@@ -8,3 +8,4 @@ out
 *.iml
 public_html/cgi-bin/error.log
 public_html/cgi-bin/standard-output.txt
+conf/httpd_alex.conf
