@@ -246,7 +246,7 @@ public class Worker implements Runnable {
     }
 
     // * Check if file exists helper function
-    private static boolean fileExists(String dirAlias) {
+    private static synchronized boolean fileExists(String dirAlias) {
         File file = new File(dirAlias);
         if(file.exists()) {
             return true;
@@ -553,7 +553,7 @@ public class Worker implements Runnable {
 
 
     // * Helper functions    
-    private static boolean htAccessExist() {
+    private static synchronized boolean htAccessExist() {
         if(htAccessPath.length() != 0) {
             return true;
         }
@@ -561,7 +561,7 @@ public class Worker implements Runnable {
     }
 
     // * Execute scipt method
-    private static void execScript(Socket client) {
+    private static synchronized void execScript(Socket client) {
         System.out.println("🔨 Execute Script...");
         try {
             FileInputStream indexHTML = new FileInputStream(dirAlias);
@@ -583,18 +583,18 @@ public class Worker implements Runnable {
         }
     }
 
-    private static boolean isScriptAlias() {
+    private static synchronized boolean isScriptAlias() {
         if(scriptAlias != null) {
             return true;
         }
         return false;
     }
 
-    private static boolean authHeadersExist(String string) {
+    private static synchronized boolean authHeadersExist(String string) {
         return true;
     }
 
-    private void stopThread() {
+    private synchronized void stopThread() {
         running.set(false);
     }
 
@@ -617,7 +617,7 @@ public class Worker implements Runnable {
         pw.print("\r\n");
     }
 
-    private static void co_response_200(OutputStream clientOutput, FileInputStream fis) {
+    private static synchronized void co_response_200(OutputStream clientOutput, FileInputStream fis) {
         try {
             clientOutput.write(("HTTP/1.1 200 OK").getBytes());
             clientOutput.write(("\r\n").getBytes());
@@ -650,7 +650,7 @@ public class Worker implements Runnable {
         }
     }
 
-    private static void jpg_response_200(OutputStream clientOutput, FileInputStream fis) {
+    private static synchronized void jpg_response_200(OutputStream clientOutput, FileInputStream fis) {
         try {
             clientOutput.write(("HTTP/1.1 200 OK").getBytes());
             clientOutput.write(("\r\n").getBytes());
@@ -676,12 +676,12 @@ public class Worker implements Runnable {
     }
 
 
-    private static void printRequest(StringBuilder request) {
+    private static synchronized void printRequest(StringBuilder request) {
         System.out.println("--REQUEST--");
         System.out.println("Request: " + request);
     }
 
-    public static void send401Response(Socket socket) throws IOException {
+    public static synchronized void send401Response(Socket socket) throws IOException {
         BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
 
         writer.write("HTTP/1.1 401 Unauthorized \r\n");
