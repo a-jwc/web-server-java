@@ -39,7 +39,7 @@ public class Worker implements Runnable {
 
     // * Header objects
     private static String contentType;
-    private static int contentLength;
+    private static long contentLength;
     private static String lastModified;
     private static String dateTime;
 
@@ -280,8 +280,9 @@ public class Worker implements Runnable {
 
             // FileInputStream indexHTML = new FileInputStream("./public_html/ab1/ab2/index.html");
             OutputStream clientOutput = client.getOutputStream();
+            contentLength = indexHTML.length();
             co_response_200(clientOutput, fis);
-            clientOutput.write(indexHTML.toString().getBytes());
+            // clientOutput.write(indexHTML.toString().getBytes());
             clientOutput.flush();
             // System.out.println("2: " + client);
         } else if (resource.contains("/image")) {
@@ -294,13 +295,12 @@ public class Worker implements Runnable {
             String fileName = resource.substring(resource.lastIndexOf(".") - resource.lastIndexOf("/") + 2);
             
             System.out.println("filename: " + fileName);
-            // URL url = new URL(imagePath);
-            
+            // URL url = new URL(imagePath);      
             
             byte[] buffer = new byte[2048];
             String imgHtml = "<img src=\"" + imagePath + "\" />";
             jpg_response_200(clientOutput, fis);
-
+            clientOutput.write(fis.toString().getBytes());
             clientOutput.flush();
             // image.close();
         } else if (resource.contains("/ab/")) {
@@ -573,11 +573,11 @@ public class Worker implements Runnable {
             clientOutput.write(("\r\n").getBytes());
             clientOutput.write(("Server: " + server).getBytes());
             clientOutput.write(("\r\n").getBytes());
-            clientOutput.write(("Content-Length: " + fis.toString().getBytes().length).getBytes());
+            clientOutput.write(("Content-Length: " + contentLength).getBytes());
             clientOutput.write(("\r\n").getBytes());
             clientOutput.write(("Connection: Keep-Alive").getBytes());
             clientOutput.write(("\r\n").getBytes());
-            clientOutput.write(("Content-Type: " + contentType + "; charset=utf-8").getBytes());
+            clientOutput.write(("Content-Type: " + contentType).getBytes());
             clientOutput.write(("\r\n").getBytes());
             clientOutput.write(("Content-Language: en").getBytes());
             clientOutput.write(("\r\n").getBytes());
@@ -600,7 +600,6 @@ public class Worker implements Runnable {
 
     private static void jpg_response_200(OutputStream clientOutput, FileInputStream fis) {
         try {
-            
             clientOutput.write(("HTTP/1.1 200 OK").getBytes());
             clientOutput.write(("\r\n").getBytes());
             clientOutput.write(("Date: " + dateTime).getBytes());
