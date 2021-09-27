@@ -212,7 +212,7 @@ public class Worker implements Runnable {
         // * If the file exists, continue to check the request method (GET, POST, HEAD, etc.)
         // * Else, respond with a 400 response 
         // TODO: Put 404 response into its own method
-        // TODO: FNFExcept - resource: /ab/images/sushi.jpg; ! add 404 response for this case
+        // TODO: FNFExcept - resource: /ab/images/sushi.jpg; !solution: add 404 response for this case
         System.out.println("⏳ Checking if the requested file " + dirAlias + " exists...");
         if(fileExists(dirAlias)) {
             System.out.println("✅ File exists!");
