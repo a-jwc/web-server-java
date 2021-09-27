@@ -125,7 +125,7 @@ public class Worker implements Runnable {
         String requestLine[] = firstLine.split(" ", 0);
         String method = requestLine[0];
         String resource = requestLine[1];
-        httpdConfig.printAll();
+        // httpdConfig.printAll();
         // String fifthLine = reqArr[4];
 
         // * Create and format Date field
@@ -216,7 +216,7 @@ public class Worker implements Runnable {
         if(fileExists(dirAlias)) {
             System.out.println("✅ File exists!");
             if(isScriptAlias()) {
-                execScript(client);
+                execScript(client, reqArr);
             } else {
                 checkRequestVerb(client, method, resource);
             }
@@ -340,8 +340,7 @@ public class Worker implements Runnable {
             co_response_200(clientOutput, fis);
 
             clientOutput.flush();
-        } else if (resource.equals("/cgi-bin/")) {
-            System.out.println("1: " + client);
+        } else if (resource.equals("/protected/")) {
             FileInputStream indexHTML = new FileInputStream(dirAlias);
             OutputStream clientOutput = client.getOutputStream();
             clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
@@ -561,7 +560,7 @@ public class Worker implements Runnable {
     }
 
     // * Execute scipt method
-    private static synchronized void execScript(Socket client) {
+    private static synchronized void execScript(Socket client, String[] reqArr) {
         System.out.println("🔨 Execute Script...");
         try {
             FileInputStream indexHTML = new FileInputStream(dirAlias);
@@ -574,8 +573,9 @@ public class Worker implements Runnable {
             // clientOutput.write(("\r\n").getBytes());
             // clientOutput.write(("\r\n").getBytes());
             clientOutput.write(indexHTML.readAllBytes());
+            new RunScript(reqArr);
             // clientOutput.write(("\r\n").getBytes());
-            new RunScript().start();
+            RunScript.start();
             indexHTML.close();
             clientOutput.flush();
         } catch (IOException e) {
