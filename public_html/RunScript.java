@@ -1,4 +1,4 @@
-package public_html.cgi-bin;
+package public_html;
 
 import java.io.*;
 import java.lang.ProcessBuilder.Redirect;
@@ -7,6 +7,11 @@ import java.util.*;
 public class RunScript {
     private static Map<String, String> env;
     public static void main(String[] args) {
+
+    }
+
+    public static void start() {
+        System.out.println("✨ In RunScript...");
         // * Replace with ScriptAlias path or your path for testing
         // * /web-server/public_html/cgi-bin/perl_env
         String pathToScript = "/home/ajwc/SFSU/CSC667/Assignments/web-server/public_html/cgi-bin/perl_env";
@@ -18,8 +23,8 @@ public class RunScript {
             env.forEach((key, value) -> System.out.println(key + value));
             
             // * Create two new file objects: env variables, errors
-            File outputTxt = new File("standard-output.txt");
-            File errorLog = new File("error.log");
+            File outputTxt = new File("cgi-bin/standard-output.txt");
+            File errorLog = new File("cgi-bin/error.log");
 
             // * Run script
             pb.command(pathToScript);
@@ -31,6 +36,5 @@ public class RunScript {
         } catch(IOException e) {
             e.printStackTrace();
         }
-
     }
 }

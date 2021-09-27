@@ -16,7 +16,7 @@ import server.config.Configuration;
 import server.config.HtAccess;
 import server.config.HttpdConfig;
 import server.config.MimeTypes;
-import public_html.cgi-bin;
+import public_html.RunScript;
 
 public class Worker implements Runnable {
     final static String CRLF = "\r\n";
@@ -575,7 +575,7 @@ public class Worker implements Runnable {
             // clientOutput.write(("\r\n").getBytes());
             clientOutput.write(indexHTML.readAllBytes());
             // clientOutput.write(("\r\n").getBytes());
-            RunScipt rs = new RunScript();
+            new RunScript().start();
             indexHTML.close();
             clientOutput.flush();
         } catch (IOException e) {
