@@ -2,14 +2,13 @@ package server.auth;
 
 import java.io.*;
 import java.util.concurrent.ConcurrentHashMap;
+import server.config.*;
 
 public class HtAccess {
     private static ConcurrentHashMap<String, String> htAccessMap;
-    private static ConcurrentHashMap<String, String> htpwdMap;
 
     public HtAccess() {
         htAccessMap = new ConcurrentHashMap<>();
-        htpwdMap = new ConcurrentHashMap<>();
     }
 
     public void read(String htAccessPath) {
@@ -60,9 +59,5 @@ public class HtAccess {
     // * Get the user or group that can access a resource ("valid-user")
     public String getReq() {
         return htAccessMap.get("Require");
-    }
-
-    private static void readHtpwd() {
-        // TODO: read in .htpasswd, parse, decode
-    }
+    }  
 }

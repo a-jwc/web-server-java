@@ -40,6 +40,6 @@ public class HttpdConfig {
     }
 
     public String getAccessFileName() {
-        return httpdConfigMap.get("AccessFileName");
+        return httpdConfigMap.get("AccessFile");
     }
 }
