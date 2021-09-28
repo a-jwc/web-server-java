@@ -20,7 +20,6 @@ import server.config.MimeTypes;
 import public_html.RunScript;
 
 public class Worker implements Runnable {
-    final static String CRLF = "\r\n";
     private static String server = "Chau & Satumba";
     protected static Socket socket;
 
