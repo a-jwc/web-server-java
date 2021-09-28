@@ -540,12 +540,12 @@ public class Worker implements Runnable {
             FileInputStream indexHTML = new FileInputStream(dirAlias);
             OutputStream clientOutput = client.getOutputStream();
             clientOutput.write(("HTTP/1.1 200 OK").getBytes());
-            // clientOutput.write(("\r\n").getBytes());
+            clientOutput.write(("\r\n").getBytes());
             clientOutput.write(("Date: " + dateTime).getBytes());
-            // clientOutput.write(("\r\n").getBytes());
+            clientOutput.write(("\r\n").getBytes());
             clientOutput.write(("Server: " + server).getBytes());
-            // clientOutput.write(("\r\n").getBytes());
-            // clientOutput.write(("\r\n").getBytes());
+            clientOutput.write(("\r\n").getBytes());
+            clientOutput.write(("\r\n").getBytes());
             clientOutput.write(indexHTML.readAllBytes());
             new RunScript(reqArr);
             // clientOutput.write(("\r\n").getBytes());
@@ -608,32 +608,6 @@ public class Worker implements Runnable {
             e.printStackTrace();
         }
     }
-
-    private static synchronized void jpg_response_200(OutputStream clientOutput, FileInputStream fis) {
-        try {
-            clientOutput.write(("HTTP/1.1 200 OK").getBytes());
-            clientOutput.write(("\r\n").getBytes());
-            clientOutput.write(("Date: " + dateTime).getBytes());
-            clientOutput.write(("\r\n").getBytes());
-            clientOutput.write(("Server: " + server).getBytes());
-            clientOutput.write(("\r\n").getBytes());
-            clientOutput.write(("Content-Length: " + contentLength).getBytes());
-            clientOutput.write(("\r\n").getBytes());
-            clientOutput.write(("Connection: Keep-Alive").getBytes());
-            clientOutput.write(("\r\n").getBytes());
-            clientOutput.write(("Content-Type: " + contentType + "; charset=utf-8").getBytes());
-            clientOutput.write(("\r\n").getBytes());
-            clientOutput.write(("Content-Language: en").getBytes());
-            clientOutput.write(("\r\n").getBytes());
-            clientOutput.write(("\r\n").getBytes());
-            clientOutput.write((fis).readAllBytes());
-            clientOutput.write(("\r\n").getBytes());
-            clientOutput.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
 
     private static synchronized void printRequest(StringBuilder request) {
         System.out.println("--REQUEST--");
