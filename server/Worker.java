@@ -134,9 +134,7 @@ public class Worker implements Runnable {
         String resource = requestLine[1];
 
 
-        httpdConfig.printAll();
-
-        String fifthLine = reqArr[4];
+        // httpdConfig.printAll();
 
         // * Create and format Date field
         String dateTimePattern = "EEE, d MMM yyyy HH:mm:ss z";
@@ -296,6 +294,8 @@ public class Worker implements Runnable {
 
     private static synchronized void checkRequestVerb(Socket client, String method, String resource) throws IOException {
         // * Switch on method
+        String fifthLine = reqArr[4];
+        String sixthLine = reqArr[5];        
         switch (method) {
             case "GET":
                 getRequest(client, resource);
@@ -303,13 +303,12 @@ public class Worker implements Runnable {
             case "HEAD":
                 headRequest(client, resource);
                 break;
-            case "POST":
-                // String sixthLine = reqArr[5];
-                // postRequest(client, resource, fifthLine, sixthLine);
+            case "POST":                        
+                postRequest(client, resource, fifthLine, sixthLine);
                 break;
             case "PUT":
-                // String sixthLines = reqArr[5];
-                // putRequest(client, resource, fifthLine, sixthLines);
+                String sixthLines = reqArr[5];
+                putRequest(client, resource, fifthLine, sixthLines);
                 break;
             case "DELETE":
                 deleteRequest(client, resource);
@@ -317,86 +316,31 @@ public class Worker implements Runnable {
             default:
                 OutputStream clientOutput = client.getOutputStream();
                 send500Response(clientOutput);
+                break;
         }
     }
 
     private static synchronized void getRequest(Socket client, String resource) throws IOException {
-        System.out.println("GET request resource from: " + resource);
-        PrintWriter pw = new PrintWriter(client.getOutputStream());
+      System.out.println("GET request resource from: " + resource);
+      PrintWriter pw = new PrintWriter(client.getOutputStream());
+      BufferedOutputStream bw = new BufferedOutputStream(client.getOutputStream());
+      LocalDateTime dateTime = LocalDateTime.now();
 
-        // System.out.println("Content type: " + contentType);
-
-        // Worker.scriptAlias = httpdConfig.getScriptAlias("scriptAlias");
-
-        // System.out.println("mimetypes: " + mimeTypes.getMap().entrySet());
-        System.out.println("Socket object: " + client);
-        System.out.println("resource: " + resource);
-        // * Compare the "resource" to our list of resources
-        if (resource.equals("/")) {
-            String defaultIndex = documentRoot + resource + directoryIndex;
-            System.out.println("default index: " + defaultIndex);
-
-            File indexHTML = new File(defaultIndex.toString());
-            FileInputStream fis = new FileInputStream(indexHTML);
-            // FileInputStream indexHTML = new FileInputStream("./public_html/ab1/ab2/index.html");
-            OutputStream clientOutput = client.getOutputStream();
-            contentLength = indexHTML.length();
-            // * Call 200 response method
-            co_response_200(clientOutput, fis);
-            // clientOutput.write(indexHTML.toString().getBytes());
-            clientOutput.flush();
-            // System.out.println("2: " + client);
-        } else if (resource.contains("/image")) {
-            // Load the image from the filesystem
-            // FileInputStream image = new FileInputStream("./public_html/images/sushfi.jpg");
-            String imagePath = documentRoot + resource;
-            FileInputStream fis = new FileInputStream(imagePath);
-            File image = new File(imagePath);
-            OutputStream clientOutput = client.getOutputStream();
-            String fileName = resource.substring(resource.lastIndexOf(".") - resource.lastIndexOf("/") + 2);
-            System.out.println("filename: " + fileName);
-            contentLength = image.length();
-
-            // * Call 200 response method
-            co_response_200(clientOutput, fis);
-            clientOutput.flush();
-            // image.close();
-        } else if (resource.contains("/ab/")) {
-            System.out.println("1: " + client);
-            File indexHTML = new File(dirAlias.toString());
-            FileInputStream fis = new FileInputStream(indexHTML);
-            OutputStream clientOutput = client.getOutputStream();
-            contentLength = indexHTML.length();
-
-            co_response_200(clientOutput, fis);
-
-            clientOutput.flush();
-        } else if (resource.contains("/~traciely/")) {
-            File indexHTML = new File(dirAlias.toString());
-            FileInputStream fis = new FileInputStream(indexHTML);
-            OutputStream clientOutput = client.getOutputStream();
-            contentLength = indexHTML.length();
-            // * Call 200 response method
-            co_response_200(clientOutput, fis);
-
-            clientOutput.flush();
-        } else if (resource.equals("/protected/")) {
-            FileInputStream indexHTML = new FileInputStream(dirAlias);
-            OutputStream clientOutput = client.getOutputStream();
-            clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
-            clientOutput.write(("\r\n").getBytes());
-            clientOutput.write(indexHTML.readAllBytes());
-            indexHTML.close();
-            clientOutput.flush();
-        } else {
+      if (resource.equals("/")) {
+        // Load the image from the filesystem
+        FileInputStream indexHTML = new FileInputStream("public_html/index.html");
+        OutputStream clientOutput = client.getOutputStream();
+        clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
+        clientOutput.write(("\r\n").getBytes());
+        clientOutput.write(indexHTML.readAllBytes());
+        indexHTML.close();
+        clientOutput.flush();
+      } else {
             OutputStream clientOutput = client.getOutputStream();
             send500Response(clientOutput);
             clientOutput.flush();
         }
     }
-    // ! pw.print(("HTTP/1.1 500 Internal Server Error\r\n"));
-    // ! pw.print(("HTTP/1.1 304 Not Modified\r\n"));
-
 
     private static void headRequest(Socket client, String resource) throws IOException {
         System.out.println("HEAD request resource from: " + resource);
@@ -404,8 +348,7 @@ public class Worker implements Runnable {
         LocalDateTime dateTime = LocalDateTime.now();
 
         if (resource.equals("/")) {
-            // Load the image from the filesystem
-            FileInputStream indexHTML = new FileInputStream("./public_html/ab1/ab2/index.html");
+            FileInputStream indexHTML = new FileInputStream("./public_html/index.html");
             OutputStream clientOutput = client.getOutputStream();
             clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
             clientOutput.write(("Date: " + dateTime.toString() + "\r\n").getBytes());
@@ -418,38 +361,6 @@ public class Worker implements Runnable {
             clientOutput.write(indexHTML.readAllBytes());
             indexHTML.close();
             clientOutput.flush();
-        } else if (resource.equals("/400")) {
-            // Status code
-            pw.print(("HTTP/1.1 400 Bad Request\r\n"));
-            // Date
-            pw.print(("Date: " + dateTime.toString()));
-            pw.print("\r\n");
-            // Server
-            pw.print(("Server: " + server));
-            pw.print("\r\n");
-            // Content-Length
-            pw.print(("Content-Length: " + contentLength));
-            pw.print("\r\n");
-            // Content-Type
-            pw.print(("Content-Type: text/html; charset=utf-8"));
-            pw.print("\r\n");
-            pw.flush();
-        } else if (resource.equals("/500")) {
-            // Status code
-            pw.print(("HTTP/1.1 500 Internal Server Error\r\n"));
-            // Date
-            pw.print(("Date: " + dateTime.toString()));
-            pw.print("\r\n");
-            // Server
-            pw.print(("Server: " + server));
-            pw.print("\r\n");
-            // Content-Length
-            pw.print(("Content-Length: " + contentLength));
-            pw.print("\r\n");
-            // Content-Type
-            pw.print(("Content-Type: text/html; charset=utf-8"));
-            pw.print("\r\n");
-            pw.flush();
         } else {
             // Status code
             pw.print(("HTTP/1.1 404 Not Found\r\n"));
