@@ -135,6 +135,30 @@ public class Worker implements Runnable {
         SimpleDateFormat sdf = new SimpleDateFormat(dateTimePattern);
         dateTime = sdf.format(new Date());
 
+            switch (method) {
+                case "GET":
+                    getRequest(client, resource);
+                    break;
+                case "HEAD":
+                    headRequest(client, resource);
+                    break;
+                case "POST":
+                    String sixthLine = reqArr[5];
+                    postRequest(client, resource, fifthLine, sixthLine);
+                    break;
+                case "PUT":
+                    String sixthLines = reqArr[5];
+                    putRequest(client, resource, fifthLine, sixthLines);
+                    break;
+                case "DELETE":
+                    deleteRequest(client, resource);
+                    break;
+                default:
+                    OutputStream clientOutput = client.getOutputStream();
+                    send500Response(clientOutput);
+                    break;
+            }
+
         // * Get document roots and index from hash Map
         documentRoot = httpdConfig.getDocumentRoot("DocumentRoot");
         directoryIndex = httpdConfig.getDirectoryIndex();
@@ -221,8 +245,7 @@ public class Worker implements Runnable {
             if(isScriptAlias()) {
                 execScript(client, reqArr);
             } else {
-                System.out.println("checkRequestVerb");
-                checkRequestVerb(client, method, resource);
+                // checkRequestVerb(client, method, resource);
             }
         } else {
             System.out.println("❌ File not found!");
@@ -257,60 +280,22 @@ public class Worker implements Runnable {
         return false;
     }
 
-    private static synchronized void checkRequestVerb(Socket client, String method, String resource) throws IOException {
-        // * Switch on method
-        switch (method) {
-            case "GET":
-                getRequest(client, resource);
-                break;
-            case "HEAD":
-                headRequest(client, resource);
-                break;
-            case "POST":
-                // String sixthLine = reqArr[5];
-                // postRequest(client, resource, fifthLine, sixthLine);
-                break;
-            case "PUT":
-                // String sixthLines = reqArr[5];
-                // putRequest(client, resource, fifthLine, sixthLines);
-                break;
-            case "DELETE":
-                deleteRequest(client, resource);
-                break;
-            default:
-                OutputStream clientOutput = client.getOutputStream();
-                send500Response(clientOutput);
-        }
-    }
-
     private static synchronized void getRequest(Socket client, String resource) throws IOException {
-        System.out.println("GET request resource from: " + resource);
-        PrintWriter pw = new PrintWriter(client.getOutputStream());
+      System.out.println("GET request resource from: " + resource);
+      PrintWriter pw = new PrintWriter(client.getOutputStream());
+      BufferedOutputStream bw = new BufferedOutputStream(client.getOutputStream());
+      LocalDateTime dateTime = LocalDateTime.now();
 
-        // System.out.println("Content type: " + contentType);
-
-        // Worker.scriptAlias = httpdConfig.getScriptAlias("scriptAlias");
-
-        // System.out.println("mimetypes: " + mimeTypes.getMap().entrySet());
-        System.out.println("Socket object: " + client);
-        System.out.println("resource: " + resource);
-        // * Compare the "resource" to our list of resources
-        if (resource.equals("/")) {
-            String defaultIndex = documentRoot + resource + directoryIndex;
-            System.out.println("default index: " + defaultIndex);
-
-            File indexHTML = new File(defaultIndex.toString());
-            FileInputStream fis = new FileInputStream(indexHTML);
-            // FileInputStream indexHTML = new FileInputStream("./public_html/ab1/ab2/index.html");
-            OutputStream clientOutput = client.getOutputStream();
-            contentLength = indexHTML.length();
-            // * Call 200 response method
-            co_response_200(clientOutput, fis);
-            // clientOutput.write(indexHTML.toString().getBytes());
-            clientOutput.flush();
-            // System.out.println("2: " + client);
-        } else if (resource.contains("/image")) {
-            // Load the image from the filesystem
+      if (resource.equals("/")) {
+        // Load the image from the filesystem
+        FileInputStream indexHTML = new FileInputStream("public_html/index.html");
+        OutputStream clientOutput = client.getOutputStream();
+        clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
+        clientOutput.write(("\r\n").getBytes());
+        clientOutput.write(indexHTML.readAllBytes());
+        indexHTML.close();
+        clientOutput.flush();
+      } else if (resource.contains("/image")) {
             // FileInputStream image = new FileInputStream("./public_html/images/sushfi.jpg");
             String imagePath = documentRoot + resource;
             FileInputStream fis = new FileInputStream(imagePath);
@@ -319,7 +304,6 @@ public class Worker implements Runnable {
             String fileName = resource.substring(resource.lastIndexOf(".") - resource.lastIndexOf("/") + 2);
             System.out.println("filename: " + fileName);
             contentLength = image.length();
-
             // * Call 200 response method
             co_response_200(clientOutput, fis);
             clientOutput.flush();
@@ -357,9 +341,6 @@ public class Worker implements Runnable {
             clientOutput.flush();
         }
     }
-    // ! pw.print(("HTTP/1.1 500 Internal Server Error\r\n"));
-    // ! pw.print(("HTTP/1.1 304 Not Modified\r\n"));
-
 
     private static void headRequest(Socket client, String resource) throws IOException {
         System.out.println("HEAD request resource from: " + resource);
@@ -368,7 +349,7 @@ public class Worker implements Runnable {
 
         if (resource.equals("/")) {
             // Load the image from the filesystem
-            FileInputStream indexHTML = new FileInputStream("./public_html/ab1/ab2/index.html");
+            FileInputStream indexHTML = new FileInputStream("./public_html/index.html");
             OutputStream clientOutput = client.getOutputStream();
             clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
             clientOutput.write(("Date: " + dateTime.toString() + "\r\n").getBytes());
@@ -381,38 +362,6 @@ public class Worker implements Runnable {
             clientOutput.write(indexHTML.readAllBytes());
             indexHTML.close();
             clientOutput.flush();
-        } else if (resource.equals("/400")) {
-            // Status code
-            pw.print(("HTTP/1.1 400 Bad Request\r\n"));
-            // Date
-            pw.print(("Date: " + dateTime.toString()));
-            pw.print("\r\n");
-            // Server
-            pw.print(("Server: " + server));
-            pw.print("\r\n");
-            // Content-Length
-            pw.print(("Content-Length: " + contentLength));
-            pw.print("\r\n");
-            // Content-Type
-            pw.print(("Content-Type: text/html; charset=utf-8"));
-            pw.print("\r\n");
-            pw.flush();
-        } else if (resource.equals("/500")) {
-            // Status code
-            pw.print(("HTTP/1.1 500 Internal Server Error\r\n"));
-            // Date
-            pw.print(("Date: " + dateTime.toString()));
-            pw.print("\r\n");
-            // Server
-            pw.print(("Server: " + server));
-            pw.print("\r\n");
-            // Content-Length
-            pw.print(("Content-Length: " + contentLength));
-            pw.print("\r\n");
-            // Content-Type
-            pw.print(("Content-Type: text/html; charset=utf-8"));
-            pw.print("\r\n");
-            pw.flush();
         } else {
             // Status code
             pw.print(("HTTP/1.1 404 Not Found\r\n"));
