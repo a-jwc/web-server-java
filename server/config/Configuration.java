@@ -19,7 +19,6 @@ public class Configuration {
     public Configuration(String httpdConfFile, String mimeTypesFile) {
         this.httpdConfFile = httpdConfFile;
         this.mimeTypesFile = mimeTypesFile;
-        
     }
 
     public void readHttpdConfig() {
@@ -96,33 +95,33 @@ public class Configuration {
 
     public void load() {
         // * Parse and put htAccess items in the hash map
-        System.out.println("⏳ Loading file...");
-        try {
-            FileInputStream fis = new FileInputStream(htpasswordFile);
-            DataInputStream dis = new DataInputStream(fis);
-            BufferedReader br = new BufferedReader(new InputStreamReader(dis));
-            StringBuilder sb = new StringBuilder();
-            String line;
-            String htArr[];
-            while((line = br.readLine()) != null) {
-                if(!line.startsWith("#") && !line.isBlank()) {
-                    htArr = line.split(":", 2);    
-                    htArr[1].replace("{*}", "").trim();                
-                    if(htArr.length == 2) {             
-                        System.out.println(htpwdMap.size() + " : " + htArr[0] + " " + htArr[1]);
-                        htpwdMap.put(htArr[0], htArr[1]);
-                    } 
-                    sb.append(line + "\r\n");
-                }
-            }
-            br.close();
-            dis.close();
-            fis.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            System.out.println("✅ Successfully read in " + htpasswordFile + "\n");
-        }
+        // System.out.println("⏳ Loading file...");
+        // try {
+        //     FileInputStream fis = new FileInputStream(htpasswordFile);
+        //     DataInputStream dis = new DataInputStream(fis);
+        //     BufferedReader br = new BufferedReader(new InputStreamReader(dis));
+        //     StringBuilder sb = new StringBuilder();
+        //     String line;
+        //     String htArr[];
+        //     while((line = br.readLine()) != null) {
+        //         if(!line.startsWith("#") && !line.isBlank()) {
+        //             htArr = line.split(":", 2);    
+        //             htArr[1].replace("{*}", "").trim();                
+        //             if(htArr.length == 2) {             
+        //                 System.out.println(htpwdMap.size() + " : " + htArr[0] + " " + htArr[1]);
+        //                 htpwdMap.put(htArr[0], htArr[1]);
+        //             } 
+        //             sb.append(line + "\r\n");
+        //         }
+        //     }
+        //     br.close();
+        //     dis.close();
+        //     fis.close();
+        // } catch (IOException e) {
+        //     e.printStackTrace();
+        // } finally {
+        //     System.out.println("✅ Successfully read in " + htpasswordFile + "\n");
+        // }
     }
 
     public ConcurrentHashMap<String, String> getConfigMap() {
@@ -131,6 +130,10 @@ public class Configuration {
 
     public ConcurrentHashMap<String[], String> getMimeTypesMap() {
         return mimeTypesMap;
+    }
+
+    public String getHtpwdFile() {
+        return htpasswordFile;
     }
 
     public String getDirective(String directive) {
