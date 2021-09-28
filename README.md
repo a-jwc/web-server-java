@@ -1,5 +1,9 @@
 # csc667-web-server
 
+## Info
+- **THERE IS NOT MASTER / MAIN BRANCH. WHEN STARTING THE REPO, BRANCH CHAU_DEV WAS THE FIRST BRANCH PUSHED TO THE REPO AFTER SWITCHING FROM OUR TEMPORARY PERSONAL PRIVATE REPO AND THERE WAS NO WAY FOR US TO CHANGE THIS. PLEASE USE CHAU_DEV IN PLACE OF MASTER. WE APOLOGIZE FOR THIS INCONVENIENCE.**
+- There are commits after the deadline because we forgot to change the paths for httpd.conf and because of error during merging. Please accept this most recent commit.
+
 ## Milestones / Specifications
 
 - [ ] 1. Read, and store, standard configuration files for use in responding to client requests - AC
@@ -19,5 +23,5 @@
 
 ```
 // TODO: Simplify to javac WebServer.java;java WebServer
-javac public_html/RunScript.java;javac server/config/Configuration.java;javac server/config/HtAccess.java;javac server/Server.java;javac server/Worker.java;javac WebServer.java;java WebServer
+javac server/config/MimeTypes.java; javac server/config/HttpdConfig.java;javac server/config/Htpassword.java; javac public_html/RunScript.java;javac server/config/Configuration.java;javac server/config/HtAccess.java;javac server/Server.java;javac server/Worker.java;javac WebServer.java;java WebServer
 ```
