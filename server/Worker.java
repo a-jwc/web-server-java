@@ -14,6 +14,7 @@ import javax.imageio.ImageIO;
 
 import server.config.Configuration;
 import server.config.HtAccess;
+import server.config.Htpassword;
 import server.config.HttpdConfig;
 import server.config.MimeTypes;
 import public_html.RunScript;
@@ -37,13 +38,16 @@ public class Worker implements Runnable {
     private static HttpdConfig httpdConfig;
     private static MimeTypes mimeTypes;
     private static HtAccess htAccess;
-    private final AtomicBoolean running = new AtomicBoolean(false);
+    private static Htpassword htPassword;
+    private final static AtomicBoolean running = new AtomicBoolean(false);
 
     // * Header objects
     private static String contentType;
     private static long contentLength;
     private static String lastModified;
     private static String dateTime;
+    private static String authInfo;
+    private static String authWWWInfo;
 
     // * Body Objects
     private static String imgHtml;
@@ -56,10 +60,11 @@ public class Worker implements Runnable {
         // * Local access to the directives via httpdConfig object
         httpdConfig = new HttpdConfig(config.getConfigMap());
         // * Local access to the mime types via mimeTypes object
-        mimeTypes = new MimeTypes(config.getMimeTypesMap());
+        mimeTypes = new MimeTypes(config.getMimeTypesMap());        
         contentLength = 0;
         scriptAlias = null;
         scriptName = null;
+        authInfo = null;
     }
 
     @Override
@@ -126,6 +131,7 @@ public class Worker implements Runnable {
         String method = requestLine[0];
         String resource = requestLine[1];
 
+
         // httpdConfig.printAll();
 
         String fifthLine = reqArr[4];
@@ -179,37 +185,9 @@ public class Worker implements Runnable {
             contentType = "text/html";
         }
 
-        // * If htaccess exists, get headers for auth
-        // * Else, return 401 response
-        htAccessPath = httpdConfig.getAccessFileName();
-        System.out.println("⏳ Checking if .htaccess exists...");
-        if(htAccessExist()) {
-            System.out.println("✅ .htaccess exists!");
-            // TODO: Auth headers and username / password parsing
-            HtAccess htAccess = new HtAccess();
-            htAccess.read(htAccessPath);
-            if(!authHeadersExist("temp string")) {
-                PrintWriter pw = new PrintWriter(client.getOutputStream());
-                // Status code
-                pw.print(("HTTP/1.1 401 Unauthorized\r\n"));
-                pw.print("\r\n");
-                // Date
-                pw.print(("Date: " + dateTime));
-                pw.print("\r\n");
-                // Server
-                pw.print(("Server: " + server));
-                pw.print("\r\n");
-                pw.print(("WWW-Authenticate: Basic realm=\"Access to staging site\""));
-                pw.print("\r\n");
-                // Content-Length
-                pw.print(("Content-Length: " + contentLength));
-                pw.print("\r\n");
-                // Content-Type
-                pw.print(("Content-Type: text/html; charset=utf-8"));
-                pw.print("\r\n");
-                pw.flush();
-            }
-        }
+        // * Access Check
+        getAuthHeader(reqArr);
+        checkAccess(client);
 
         // * If the file exists, continue to check the request method (GET, POST, HEAD, etc.)
         // * Else, respond with a 400 response
@@ -226,26 +204,77 @@ public class Worker implements Runnable {
             }
         } else {
             System.out.println("❌ File not found!");
-            // PrintWriter pw = new PrintWriter(client.getOutputStream());
-            //
-            // // Status code
-            // pw.print(("HTTP/1.1 404 Not Found\r\n"));
-            // // print
-            // pw.print(("HTTP/1.1 404 Not Found\r\n"));
-            // // Date
-            // pw.print(("Date: " + dateTime.toString()));
-            // pw.print("\r\n");
-            // // Server
-            // pw.print(("Server: " + server));
-            // pw.print("\r\n");
-            // // Content-Length
-            // pw.print(("Content-Length: " + contentLength));
-            // pw.print("\r\n");
-            // // Content-Type
-            // pw.print(("Content-Type: " + contentType + "\r\n"));
-            // pw.print("\r\n");
-            // pw.flush();
+            OutputStream clientOutput = client.getOutputStream();
+            
+            // Status code
+            clientOutput.write(("HTTP/1.1 404 Not Found").getBytes());
+            clientOutput.write("\r\n".getBytes());
+            // print
+            clientOutput.write(("HTTP/1.1 404 Not Found").getBytes());
+            clientOutput.write("\r\n".getBytes());
+            // Date
+            clientOutput.write(("Date: " + dateTime.toString()).getBytes());
+            clientOutput.write("\r\n".getBytes());
+            // Server
+            clientOutput.write(("Server: " + server).getBytes());
+            clientOutput.write("\r\n".getBytes());
+            // Content-Length
+            clientOutput.write(("Content-Length: " + contentLength).getBytes());
+            clientOutput.write("\r\n".getBytes());
+            // Content-Type
+            clientOutput.write(("Content-Type: " + contentType + "\r\n").getBytes());
+            clientOutput.write("\r\n".getBytes());
+            clientOutput.flush();
         }
+    }
+
+    private static void checkAccess(Socket client) {
+        htAccessPath = httpdConfig.getAccessFileName();
+        System.out.println("⏳ Checking if .htaccess exists...");
+        // * If htaccess exists, get headers for auth
+        // * Else, return 401 response
+        if(htAccessExist()) {
+            System.out.println("✅ .htaccess exists!");
+            try {
+                HtAccess htAccess = new HtAccess();
+                htAccess.read(htAccessPath);
+                htPassword = new Htpassword(htAccess.getAuthUserFile());
+                if(!authHeadersExist()) {
+                    if(!htPassword.isAuthorized(authInfo)) {
+                        send403Response(client);
+                        stopThread();
+                    }
+                } else {
+                    send401Response(client);
+                    stopThread();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private static boolean authHeadersExist() {
+        if(authWWWInfo.isBlank() && authInfo.isBlank()) {
+            return false;
+        }
+        return true;
+    }
+
+    private static void getAuthHeader(String[] reqArr) {
+        boolean flag1, flag2 = false;
+        for(String str : reqArr) {
+            if(str.contains("WWW-Authenticate")) {
+                authWWWInfo = str.substring(str.indexOf(":") + 1);
+                flag1 = true;
+            }
+            if(str.contains("Authorization")) {
+                authInfo = str.substring(str.indexOf(":") + 1);
+                flag2 = true;
+            }
+        }
+
+
     }
 
     // * Check if file exists helper function
@@ -534,11 +563,7 @@ public class Worker implements Runnable {
         return false;
     }
 
-    private static synchronized boolean authHeadersExist(String string) {
-        return true;
-    }
-
-    private synchronized void stopThread() {
+    private synchronized static void stopThread() {
         running.set(false);
     }
 
@@ -626,12 +651,47 @@ public class Worker implements Runnable {
     }
 
     public static synchronized void send401Response(Socket socket) throws IOException {
-        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+        PrintWriter pw = new PrintWriter(socket.getOutputStream());
+        // Status code
+        pw.print(("HTTP/1.1 401 Unauthorized\r\n"));
+        pw.print("\r\n");
+        // Date
+        pw.print(("Date: " + dateTime));
+        pw.print("\r\n");
+        // Server
+        pw.print(("Server: " + server));
+        pw.print("\r\n");
+        pw.print(("WWW-Authenticate: Basic realm=\"Access to staging site\""));
+        pw.print("\r\n");
+        // Content-Length
+        pw.print(("Content-Length: " + contentLength));
+        pw.print("\r\n");
+        // Content-Type
+        pw.print(("Content-Type: text/html; charset=utf-8"));
+        pw.print("\r\n");
+        pw.flush();
+    }
 
-        writer.write("HTTP/1.1 401 Unauthorized \r\n");
-        writer.write("Server: itsmejrob\r\n");
-        writer.write("WW-Authenticate: Basic\r\n");
-        writer.flush();
+    public static synchronized void send403Response(Socket socket) throws IOException {
+        PrintWriter pw = new PrintWriter(socket.getOutputStream());
+        // Status code
+        pw.print(("HTTP/1.1 403 Forbidden\r\n"));
+        pw.print("\r\n");
+        // Date
+        pw.print(("Date: " + dateTime));
+        pw.print("\r\n");
+        // Server
+        pw.print(("Server: " + server));
+        pw.print("\r\n");
+        pw.print(("WWW-Authenticate: Basic realm=\"Access to staging site\""));
+        pw.print("\r\n");
+        // Content-Length
+        pw.print(("Content-Length: " + contentLength));
+        pw.print("\r\n");
+        // Content-Type
+        pw.print(("Content-Type: text/html; charset=utf-8"));
+        pw.print("\r\n");
+        pw.flush();
     }
 
     public static synchronized void send500Response(OutputStream clientOutput) throws IOException {
