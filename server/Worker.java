@@ -249,25 +249,25 @@ public class Worker implements Runnable {
             }
         } else {
             System.out.println("❌ File not found!");
-            // PrintWriter pw = new PrintWriter(client.getOutputStream());
-            //
-            // // Status code
-            // pw.print(("HTTP/1.1 404 Not Found\r\n"));
-            // // print
-            // pw.print(("HTTP/1.1 404 Not Found\r\n"));
-            // // Date
-            // pw.print(("Date: " + dateTime.toString()));
-            // pw.print("\r\n");
-            // // Server
-            // pw.print(("Server: " + server));
-            // pw.print("\r\n");
-            // // Content-Length
-            // pw.print(("Content-Length: " + contentLength));
-            // pw.print("\r\n");
-            // // Content-Type
-            // pw.print(("Content-Type: " + contentType + "\r\n"));
-            // pw.print("\r\n");
-            // pw.flush();
+            PrintWriter pw = new PrintWriter(client.getOutputStream());
+            // Status code
+            pw.print(("HTTP/1.1 404 Not Found\r\n"));
+            pw.print("\r\n");
+            //print
+            pw.print(("HTTP/1.1 404 Not Found\r\n"));
+            // Date
+            pw.print(("Date: " + dateTime.toString()));
+            pw.print("\r\n");
+            // Server
+            pw.print(("Server: " + server));
+            pw.print("\r\n");
+            // Content-Length
+            pw.print(("Content-Length: 0" ));
+            pw.print("\r\n");
+            // Content-Type
+            pw.print(("Content-Type: text/html; charset=utf-8"));
+            pw.print("\r\n");
+            pw.flush();
         }
     }
 
@@ -295,47 +295,7 @@ public class Worker implements Runnable {
         clientOutput.write(indexHTML.readAllBytes());
         indexHTML.close();
         clientOutput.flush();
-      } else if (resource.contains("/image")) {
-            // FileInputStream image = new FileInputStream("./public_html/images/sushfi.jpg");
-            String imagePath = documentRoot + resource;
-            FileInputStream fis = new FileInputStream(imagePath);
-            File image = new File(imagePath);
-            OutputStream clientOutput = client.getOutputStream();
-            String fileName = resource.substring(resource.lastIndexOf(".") - resource.lastIndexOf("/") + 2);
-            System.out.println("filename: " + fileName);
-            contentLength = image.length();
-            // * Call 200 response method
-            co_response_200(clientOutput, fis);
-            clientOutput.flush();
-            // image.close();
-        } else if (resource.contains("/ab/")) {
-            System.out.println("1: " + client);
-            File indexHTML = new File(dirAlias.toString());
-            FileInputStream fis = new FileInputStream(indexHTML);
-            OutputStream clientOutput = client.getOutputStream();
-            contentLength = indexHTML.length();
-
-            co_response_200(clientOutput, fis);
-
-            clientOutput.flush();
-        } else if (resource.contains("/~traciely/")) {
-            File indexHTML = new File(dirAlias.toString());
-            FileInputStream fis = new FileInputStream(indexHTML);
-            OutputStream clientOutput = client.getOutputStream();
-            contentLength = indexHTML.length();
-            // * Call 200 response method
-            co_response_200(clientOutput, fis);
-
-            clientOutput.flush();
-        } else if (resource.equals("/protected/")) {
-            FileInputStream indexHTML = new FileInputStream(dirAlias);
-            OutputStream clientOutput = client.getOutputStream();
-            clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
-            clientOutput.write(("\r\n").getBytes());
-            clientOutput.write(indexHTML.readAllBytes());
-            indexHTML.close();
-            clientOutput.flush();
-        } else {
+      } else {
             OutputStream clientOutput = client.getOutputStream();
             send500Response(clientOutput);
             clientOutput.flush();
@@ -348,7 +308,6 @@ public class Worker implements Runnable {
         LocalDateTime dateTime = LocalDateTime.now();
 
         if (resource.equals("/")) {
-            // Load the image from the filesystem
             FileInputStream indexHTML = new FileInputStream("./public_html/index.html");
             OutputStream clientOutput = client.getOutputStream();
             clientOutput.write(("HTTP/1.1 200 OK\r\n").getBytes());
@@ -491,96 +450,9 @@ public class Worker implements Runnable {
         running.set(false);
     }
 
-    // * Print functions
-    private static void pw_response_200(PrintWriter pw) {
-        LocalDateTime dateTime = LocalDateTime.now();
-        pw.print(("HTTP/1.1 200 OK"));
-        pw.print("\r\n");
-        // Date
-        pw.print(("Date: " + dateTime.toString()));
-        pw.print("\r\n");
-        // Server
-        pw.print(("Server: " + server));
-        pw.print("\r\n");
-        // Content-Length
-        pw.print(("Content-Length: " + contentLength));
-        pw.print("\r\n");
-        // Content-Type
-        pw.print(("Content-Type: text/html; charset=utf-8"));
-        pw.print("\r\n");
-    }
-
-    private static synchronized void co_response_200(OutputStream clientOutput, FileInputStream fis) {
-        try {
-            clientOutput.write(("HTTP/1.1 200 OK").getBytes());
-            clientOutput.write(("\r\n").getBytes());
-            clientOutput.write(("Date: " + dateTime).getBytes());
-            clientOutput.write(("\r\n").getBytes());
-            clientOutput.write(("Server: " + server).getBytes());
-            clientOutput.write(("\r\n").getBytes());
-            clientOutput.write(("Content-Length: " + contentLength).getBytes());
-            clientOutput.write(("\r\n").getBytes());
-            clientOutput.write(("Connection: Keep-Alive").getBytes());
-            clientOutput.write(("\r\n").getBytes());
-            clientOutput.write(("Content-Type: " + contentType + "; charset=utf-8").getBytes());
-            clientOutput.write(("\r\n").getBytes());
-            clientOutput.write(("Content-Language: en").getBytes());
-            clientOutput.write(("\r\n").getBytes());
-            // clientOutput.write(("Transfer-Encoding: chunked").getBytes());
-            // clientOutput.write(("\r\n").getBytes());
-            // clientOutput.write(("Content-Encoding: gzip").getBytes());
-            // clientOutput.write(("\r\n").getBytes());
-            // clientOutput.write(("Keep-Alive: timeout=5, max=999").getBytes());
-            // clientOutput.write(("\r\n").getBytes());
-            clientOutput.write(("Vary: Accept-Encoding").getBytes());
-            clientOutput.write(("\r\n").getBytes());
-            clientOutput.write(("\r\n").getBytes());
-            clientOutput.write((fis).readAllBytes());
-            clientOutput.write(("\r\n").getBytes());
-            clientOutput.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private static synchronized void jpg_response_200(OutputStream clientOutput, FileInputStream fis) {
-        try {
-            clientOutput.write(("HTTP/1.1 200 OK").getBytes());
-            clientOutput.write(("\r\n").getBytes());
-            clientOutput.write(("Date: " + dateTime).getBytes());
-            clientOutput.write(("\r\n").getBytes());
-            clientOutput.write(("Server: " + server).getBytes());
-            clientOutput.write(("\r\n").getBytes());
-            clientOutput.write(("Content-Length: " + contentLength).getBytes());
-            clientOutput.write(("\r\n").getBytes());
-            clientOutput.write(("Connection: Keep-Alive").getBytes());
-            clientOutput.write(("\r\n").getBytes());
-            clientOutput.write(("Content-Type: " + contentType + "; charset=utf-8").getBytes());
-            clientOutput.write(("\r\n").getBytes());
-            clientOutput.write(("Content-Language: en").getBytes());
-            clientOutput.write(("\r\n").getBytes());
-            clientOutput.write(("\r\n").getBytes());
-            clientOutput.write((fis).readAllBytes());
-            clientOutput.write(("\r\n").getBytes());
-            clientOutput.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-
     private static synchronized void printRequest(StringBuilder request) {
         System.out.println("--REQUEST--");
         System.out.println("Request: " + request);
-    }
-
-    public static synchronized void send401Response(Socket socket) throws IOException {
-        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-
-        writer.write("HTTP/1.1 401 Unauthorized \r\n");
-        writer.write("Server: itsmejrob\r\n");
-        writer.write("WW-Authenticate: Basic\r\n");
-        writer.flush();
     }
 
     public static synchronized void send500Response(OutputStream clientOutput) throws IOException {
