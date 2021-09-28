@@ -39,7 +39,7 @@ public class HttpdConfig {
         return httpdConfigMap.get(scriptAlias);
     }
 
-    public String getAccessFileName() {
+    public String getAccessFile() {
         return httpdConfigMap.get("AccessFile");
     }
 }

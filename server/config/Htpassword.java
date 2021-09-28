@@ -13,12 +13,14 @@ import java.util.*;
 
 public class Htpassword extends Configuration {
   private HashMap<String, String> passwords;
+  private String htpasswordFile;
 
   public Htpassword(String filename) throws IOException {
     super(filename);
     System.out.println("Password file: " + filename);
 
     this.passwords = new HashMap<String, String>();
+    htpasswordFile = "";
     this.load();
   }
 
@@ -39,13 +41,16 @@ public class Htpassword extends Configuration {
     System.out.println("⏳ Loading file...");
     try {
       // * Read in .htpassword
-      FileInputStream fis = new FileInputStream(getHtpwdFile());
+      htpasswordFile = getHtpwdFile();
+      System.out.println("htpassword file: " + htpasswordFile);
+      FileInputStream fis = new FileInputStream(htpasswordFile);
       DataInputStream dis = new DataInputStream(fis);
       BufferedReader br = new BufferedReader(new InputStreamReader(dis));
       String line;
       while ((line = br.readLine()) != null) {
         parseLine(line);
       }
+      System.out.println("passwords keyset: " + passwords.keySet());
       br.close();
       dis.close();
       fis.close();

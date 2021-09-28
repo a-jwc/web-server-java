@@ -4,17 +4,19 @@ import java.io.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class HtAccess {
-    static ConcurrentHashMap<String, String> htAccessMap;
+    private static ConcurrentHashMap<String, String> htAccessMap;
+    private static String htAccessFile;
 
-    public HtAccess() {
+    public HtAccess(String path) {
         htAccessMap = new ConcurrentHashMap<>();
+        htAccessFile = path;
     }
 
-    public void read(String htAccessPath) {
+    public void read() {
         // * Parse and put htAccess items in the hash map
-        System.out.println("⏳ Reading .htaccess...");
+        System.out.println("⏳ Reading .htaccess..." + htAccessFile);
         try {
-            FileInputStream fis = new FileInputStream(htAccessPath);
+            FileInputStream fis = new FileInputStream(htAccessFile);
             DataInputStream dis = new DataInputStream(fis);
             BufferedReader br = new BufferedReader(new InputStreamReader(dis));
             StringBuilder sb = new StringBuilder();
@@ -36,7 +38,7 @@ public class HtAccess {
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
-            System.out.println("✅ Successfully read in " + htAccessPath + "\n");
+            System.out.println("✅ Successfully read in " + htAccessFile + "\n");
         }
     }
 
@@ -58,5 +60,9 @@ public class HtAccess {
     // * Get the user or group that can access a resource ("valid-user")
     public String getReq() {
         return htAccessMap.get("Require");
+    }  
+
+    public ConcurrentHashMap<String, String> getAccessMap() {
+        return htAccessMap;
     }
 }

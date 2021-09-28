@@ -124,15 +124,15 @@ public class Configuration {
         // }
     }
 
-    public ConcurrentHashMap<String, String> getConfigMap() {
+    public synchronized ConcurrentHashMap<String, String> getConfigMap() {
         return configMap;
     }
 
-    public ConcurrentHashMap<String[], String> getMimeTypesMap() {
+    public synchronized ConcurrentHashMap<String[], String> getMimeTypesMap() {
         return mimeTypesMap;
     }
 
-    public String getHtpwdFile() {
+    public synchronized String getHtpwdFile() {
         return htpasswordFile;
     }
 
