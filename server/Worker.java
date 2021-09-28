@@ -40,6 +40,8 @@ public class Worker implements Runnable {
     private static HtAccess htAccess;
     private static Htpassword htPassword;
     private final static AtomicBoolean running = new AtomicBoolean(false);
+    private static String fifthLines;
+    private static String sixthLines;
 
     // * Header objects
     private static String reqArr[];
@@ -135,8 +137,6 @@ public class Worker implements Runnable {
 
 
         httpdConfig.printAll();
-
-        String fifthLine = reqArr[4];
 
         // * Create and format Date field
         String dateTimePattern = "EEE, d MMM yyyy HH:mm:ss z";
@@ -296,6 +296,8 @@ public class Worker implements Runnable {
 
     private static synchronized void checkRequestVerb(Socket client, String method, String resource) throws IOException {
         // * Switch on method
+        // sixthLines = reqArr[5];
+        // fifthLine = reqArr[4];
         switch (method) {
             case "GET":
                 getRequest(client, resource);
@@ -304,11 +306,9 @@ public class Worker implements Runnable {
                 headRequest(client, resource);
                 break;
             case "POST":
-                // String sixthLine = reqArr[5];
                 // postRequest(client, resource, fifthLine, sixthLine);
                 break;
             case "PUT":
-                // String sixthLines = reqArr[5];
                 // putRequest(client, resource, fifthLine, sixthLines);
                 break;
             case "DELETE":
@@ -396,7 +396,6 @@ public class Worker implements Runnable {
     }
     // ! pw.print(("HTTP/1.1 500 Internal Server Error\r\n"));
     // ! pw.print(("HTTP/1.1 304 Not Modified\r\n"));
-
 
     private static void headRequest(Socket client, String resource) throws IOException {
         System.out.println("HEAD request resource from: " + resource);
