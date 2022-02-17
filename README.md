@@ -1,19 +1,15 @@
 # csc667-web-server
 
-## Info
-- **THERE IS NO MASTER / MAIN BRANCH. WHEN STARTING THE REPO, BRANCH CHAU_DEV WAS THE FIRST BRANCH PUSHED TO THE REPO AFTER SWITCHING FROM OUR TEMPORARY PERSONAL PRIVATE REPO AND THERE WAS NO WAY FOR US TO CHANGE THIS. PLEASE USE CHAU_DEV IN PLACE OF MASTER. WE APOLOGIZE FOR THIS INCONVENIENCE.**
-- There are commits after the deadline because we forgot to change the paths for httpd.conf and because of error during merging. Please accept this most recent commit.
-
 ## Milestones / Specifications
 
-- [ ] 1. Read, and store, standard configuration files for use in responding to client requests - AC
-- [ ] 2. Parse HTTP Requests - AC
-- [ ] 3. Generate and send HTTP Responses (this involves many possible code paths, and is probably the most significant implementation step) - MS
-- [ ] 4. Respond to multiple simultaneous requests through the use of threads - AC
-- [ ] 5. Execute server side processes to handle server side scripts - AC
-- [ ] 6. Support simple authentication - AC
-- [ ] 7. Support simple caching - MS
-- [ ] 8. Logging - MS
+- [ ] 1. Read, and store, standard configuration files for use in responding to client requests
+- [ ] 2. Parse HTTP Requests
+- [ ] 3. Generate and send HTTP Responses (this involves many possible code paths, and is probably the most significant implementation step)
+- [ ] 4. Respond to multiple simultaneous requests through the use of threads
+- [ ] 5. Execute server side processes to handle server side scripts
+- [ ] 6. Support simple authentication
+- [ ] 7. Support simple caching
+- [ ] 8. Logging
 
 ## Server Workflow
 
