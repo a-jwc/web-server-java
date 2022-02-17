@@ -15,7 +15,7 @@ public class Server {
     public Server() {
         // * Instantiate new Configuration object and sets config private members with
         // * conf file paths
-        Configuration config = new Configuration("conf/httpd.conf", "conf/mime.types");
+        Configuration config = new Configuration("conf/httpd_alex.conf", "conf/mime.types");
         // * Parse httpd.conf file into hash Map
         config.readHttpdConfig();
         // * Get the "Listen" directive from the hash Map member as the listening port

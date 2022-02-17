@@ -58,7 +58,7 @@ public class Worker implements Runnable {
     public Worker(Socket socket) {
         this.socket = socket;
         // * Instantiate new Configuration object
-        config = new Configuration("conf/httpd.conf", "conf/mime.types");
+        config = new Configuration("conf/httpd_alex.conf", "conf/mime.types");
         config.readHttpdConfig(); config.readMimeTypes();
         // * Local access to the directives via httpdConfig object
         httpdConfig = new HttpdConfig(config.getConfigMap());
