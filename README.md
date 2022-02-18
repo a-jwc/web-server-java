@@ -1,4 +1,7 @@
-# csc667-web-server
+# Web Server Application
+
+## Description
+This is a simple Apache-like multithreaded web server written in Java. It handles a subset of HTTP. 
 
 ## Milestones / Specifications
 
