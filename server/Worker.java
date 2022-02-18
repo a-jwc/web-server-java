@@ -6,11 +6,6 @@ import java.text.SimpleDateFormat;
 import java.time.*;
 import java.util.*;
 import java.util.concurrent.atomic.*;
-import java.awt.image.BufferedImage;
-
-// * Current "run server" command: javac public_html/cgi-bin/RunScript.java;javac server/config/Configuration.java;javac server/Server.java;javac server/Worker.java;javac WebServer.java;java WebServer
-
-import javax.imageio.ImageIO;
 
 import server.config.Configuration;
 import server.config.HtAccess;
@@ -21,7 +16,7 @@ import public_html.RunScript;
 
 public class Worker implements Runnable {
   private static String server = "Chau & Satumba";
-  protected static Socket socket;
+  protected Socket socket;
 
   // * Path objects
   private static String documentRoot;
@@ -108,12 +103,10 @@ public class Worker implements Runnable {
         }
 
         printRequest(request);
-        parseResource(socket, request);
-        running.set(false);
-
-        if (request != null && request.toString().length() != 0) {
-
+        if(request.length() != 0) {
+          parseResource(socket, request);
         }
+        running.set(false);
 
         System.out.println("Thread count: " + Thread.activeCount());
         System.out.println("Thread " + Thread.currentThread().getName() + " is currently running.");
@@ -130,7 +123,8 @@ public class Worker implements Runnable {
 
   public static synchronized void parseResource(Socket client, StringBuilder req) throws IOException {
     reqArr = req.toString().split("\\r?\\n", 10);
-    // * Get the first line of the request; Get "resource" and "method" from first line
+    // * Get the first line of the request; Get "resource" and "method" from first
+    // line
     String firstLine = reqArr[0];
     // * Split by whitespace for as many elements are in the first line
     String requestLine[] = firstLine.split(" ", 0);
@@ -202,7 +196,8 @@ public class Worker implements Runnable {
       checkAccess(client);
     }
 
-    // * If the file exists, continue to check the request method (GET, POST, HEAD, etc.)
+    // * If the file exists, continue to check the request method (GET, POST, HEAD,
+    // etc.)
     // * Else, respond with a 400 response
     // TODO: Put 404 response into its own method
     // TODO: FNFExcept - resource: /ab/images/sushi.jpg; !solution: add 404 response
@@ -327,15 +322,9 @@ public class Worker implements Runnable {
 
   private static synchronized void getRequest(Socket client, String resource) throws IOException {
     System.out.println("GET request resource from: " + resource);
-    PrintWriter pw = new PrintWriter(client.getOutputStream());
-
-    // System.out.println("Content type: " + contentType);
-
-    // Worker.scriptAlias = httpdConfig.getScriptAlias("scriptAlias");
-
-    // System.out.println("mimetypes: " + mimeTypes.getMap().entrySet());
     System.out.println("Socket object: " + client);
     System.out.println("resource: " + resource);
+
     // * Compare the "resource" to our list of resources
     if (resource.equals("/")) {
       String defaultIndex = documentRoot + resource + directoryIndex;
@@ -394,6 +383,16 @@ public class Worker implements Runnable {
       clientOutput.write(("\r\n").getBytes());
       clientOutput.write(indexHTML.readAllBytes());
       indexHTML.close();
+      clientOutput.flush();
+    } else if (resource.contains(".json")) {
+      System.out.println("Requesting json resource" + resource);
+      File json = new File(dirAlias);
+      FileInputStream fis = new FileInputStream(json);
+      OutputStream clientOutput = client.getOutputStream();
+      contentLength = json.length();
+
+      // * Call 200 response method
+      co_response_200(clientOutput, fis);
       clientOutput.flush();
     } else {
       OutputStream clientOutput = client.getOutputStream();
