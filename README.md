@@ -16,7 +16,7 @@ This is a simple Apache-like multithreaded web server written in Java. It handle
 
 ## Server Workflow
 
-![image](https://user-images.githubusercontent.com/68071075/134900964-552f296d-bdfb-4d1e-98c3-c1afae770a6f.png)
+![diagram](https://user-images.githubusercontent.com/68071075/154633945-727b12f4-2cb5-4ebb-a118-bf1b024a9c90.png)
 
 ## Run
 
