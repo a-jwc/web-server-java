@@ -103,7 +103,7 @@ public class Worker implements Runnable {
         }
 
         printRequest(request);
-        if(request.length() != 0) {
+        if (request.length() != 0) {
           parseResource(socket, request);
         }
         running.set(false);
@@ -187,13 +187,12 @@ public class Worker implements Runnable {
 
     // * Access Check
     htAccessPath = httpdConfig.getAccessFile();
-    if (!htAccessExist()) {
+    if (htAccessExist()) {
       htAccess = new HtAccess(htAccessPath);
       System.out.println("htAccessPath: " + htAccessPath);
       htAccess.read();
       htAccess.getAccessMap().entrySet();
-      getAuthHeader(reqArr);
-      checkAccess(client);
+      // checkAccess(client);
     }
 
     // * If the file exists, continue to check the request method (GET, POST, HEAD,
@@ -258,22 +257,6 @@ public class Worker implements Runnable {
     return true;
   }
 
-  private static void getAuthHeader(String[] reqArr) {
-    System.out.println("authInfo: " + authInfo + "\nauthWWWInfo: " + authWWWInfo);
-    for (String str : reqArr) {
-      if (str.contains("WWW-Authenticate")) {
-        authWWWInfo = str.substring(str.indexOf(":") + 1);
-      } else {
-        authWWWInfo = "";
-      }
-      if (str.contains("Authorization")) {
-        authInfo = str.substring(str.indexOf(":") + 1);
-      } else {
-        authInfo = "";
-      }
-    }
-  }
-
   // * Check if file exists helper function
   private static synchronized boolean fileExists(String dirAlias) {
     File file = new File(dirAlias);
@@ -332,8 +315,6 @@ public class Worker implements Runnable {
 
       File indexHTML = new File(defaultIndex.toString());
       FileInputStream fis = new FileInputStream(indexHTML);
-      // FileInputStream indexHTML = new
-      // FileInputStream("./public_html/ab1/ab2/index.html");
       OutputStream clientOutput = client.getOutputStream();
       contentLength = indexHTML.length();
       // * Call 200 response method
@@ -343,8 +324,6 @@ public class Worker implements Runnable {
       // System.out.println("2: " + client);
     } else if (resource.contains("/image")) {
       // Load the image from the filesystem
-      // FileInputStream image = new
-      // FileInputStream("./public_html/images/sushfi.jpg");
       String imagePath = documentRoot + resource;
       FileInputStream fis = new FileInputStream(imagePath);
       File image = new File(imagePath);
@@ -400,8 +379,6 @@ public class Worker implements Runnable {
       clientOutput.flush();
     }
   }
-  // ! pw.print(("HTTP/1.1 500 Internal Server Error\r\n"));
-  // ! pw.print(("HTTP/1.1 304 Not Modified\r\n"));
 
   private static void headRequest(Socket client, String resource) throws IOException {
     System.out.println("HEAD request resource from: " + resource);
@@ -639,11 +616,6 @@ public class Worker implements Runnable {
   }
 
   public static synchronized void send403Response(Socket socket) throws IOException {
-    // PrintWriter pw = new PrintWriter(socket.getOutputStream());
-    // Status code
-    // pw.print(("WWW-Authenticate: Basic realm=\"Access to staging site\""));
-    // pw.print("\r\n");
-
     OutputStream clientOutput = socket.getOutputStream();
     // Status code
     clientOutput.write(("HTTP/1.1 403 Forbidden").getBytes());
